@@ -7,53 +7,49 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a0f; --card: #12121a; --border: #1e1e2c; --text: #e4e4ec;
-  --muted: #6a6a80; --accent: #3b82f6; --green: #10b981; --red: #ef4444;
+  --bg: #f5f5f7; --card: #ffffff; --border: #e2e2e8; --text: #1a1a2e;
+  --muted: #8a8a9a; --accent: #3b82f6; --green: #10b981; --red: #ef4444;
   --amber: #f59e0b; --glow: rgba(59,130,246,0.08);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
 
-/* Subtle grid background */
-body::before{content:'';position:fixed;inset:0;background:
-  linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-  linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
-  background-size:60px 60px;pointer-events:none;z-index:0;}
-
-.wrap{max-width:800px;margin:0 auto;padding:40px 20px;position:relative;z-index:1;}
+.wrap{max-width:1200px;margin:0 auto;padding:40px 24px;position:relative;z-index:1;}
 
 /* Header */
 .site-header{margin-bottom:48px;text-align:center;}
 .site-header h1{font-size:28px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px;}
 .site-header h1 span{color:var(--accent);}
 .site-header p{color:var(--muted);font-size:13px;}
-.admin-badge{display:inline-block;background:#10b98118;color:var(--green);font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;margin-left:8px;font-family:'JetBrains Mono',monospace;vertical-align:middle;}
+.admin-badge{display:inline-block;background:#10b98115;color:var(--green);font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;margin-left:8px;font-family:'JetBrains Mono',monospace;vertical-align:middle;}
 
-/* App grid */
-.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+/* App grid — always 4 columns on desktop */
+.app-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;}
+@media(max-width:900px){.app-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:500px){.app-grid{grid-template-columns:1fr;}}
 
 .app-card{
   background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:24px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;
+  padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);min-height:180px;
 }
-.app-card:hover{border-color:var(--accent);background:#14141e;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.3);}
-.app-card-icon{font-size:28px;margin-bottom:12px;}
-.app-card-name{font-size:16px;font-weight:600;margin-bottom:4px;}
-.app-card-desc{font-size:12px;color:var(--muted);line-height:1.5;}
-.app-card-status{position:absolute;top:12px;right:12px;font-size:9px;font-weight:600;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;}
-.app-card-live{background:#10b98118;color:var(--green);}
-.app-card-soon{background:#f59e0b18;color:var(--amber);}
-.app-card-lock{margin-top:12px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+.app-card:hover{border-color:var(--accent);background:#f0f4ff;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.08);}
+.app-card-icon{font-size:26px;margin-bottom:10px;}
+.app-card-name{font-size:15px;font-weight:600;margin-bottom:4px;}
+.app-card-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.app-card-status{position:absolute;top:10px;right:10px;font-size:8px;font-weight:600;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;}
+.app-card-live{background:#10b98115;color:var(--green);}
+.app-card-soon{background:#f59e0b15;color:var(--amber);}
+.app-card-lock{margin-top:10px;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;}
 
 /* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .modal-overlay.active{opacity:1;pointer-events:all;}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;max-width:380px;width:100%;transform:translateY(10px);transition:transform 0.2s;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;max-width:380px;width:100%;transform:translateY(10px);transition:transform 0.2s;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
 .modal-overlay.active .modal{transform:translateY(0);}
 .modal h2{font-size:18px;font-weight:600;margin-bottom:4px;}
 .modal p{font-size:12px;color:var(--muted);margin-bottom:20px;}
-.modal input{width:100%;background:#0a0a0f;border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-size:14px;font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:12px;letter-spacing:2px;text-align:center;}
+.modal input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-size:14px;font-family:'JetBrains Mono',monospace;outline:none;margin-bottom:12px;letter-spacing:2px;text-align:center;}
 .modal input:focus{border-color:var(--accent);}
 .modal input::placeholder{letter-spacing:0;color:var(--muted);font-family:'DM Sans',sans-serif;}
 .modal-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity 0.15s;}
@@ -63,10 +59,10 @@ body::before{content:'';position:fixed;inset:0;background:
 .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;}
 
 /* Footer */
-.site-footer{margin-top:60px;text-align:center;font-size:10px;color:#3a3a4a;padding-bottom:20px;}
+.site-footer{margin-top:60px;text-align:center;font-size:10px;color:#b0b0b8;padding-bottom:20px;}
 
 /* Logout bar */
-.logout-bar{position:fixed;top:0;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;font-size:11px;}
+.logout-bar{position:fixed;top:0;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
 .logout-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:4px;font-size:10px;cursor:pointer;font-family:inherit;}
 .logout-btn:hover{color:var(--text);border-color:var(--muted);}
 .hidden{display:none!important;}
@@ -108,7 +104,7 @@ body::before{content:'';position:fixed;inset:0;background:
 const APPS = [
   {
     slug: "fro-dashboard",
-    name: "FRO Intelligence",
+    name: "Investments",
     desc: "Frontline plc investment dashboard — prices, freight rates, conflict tracker, news intel",
     icon: "🚢",
     status: "live",
@@ -146,7 +142,6 @@ function getSession() {
     const raw = localStorage.getItem("lab_session");
     if (!raw) return null;
     const s = JSON.parse(atob(raw));
-    // Expire after 7 days
     if (Date.now() - s.ts > 7 * 24 * 60 * 60 * 1000) { localStorage.removeItem("lab_session"); return null; }
     return s;
   } catch { return null; }
@@ -178,7 +173,6 @@ function renderApps() {
   const session = getSession();
   const admin = isAdmin();
 
-  // Show/hide logout bar
   if (session) {
     document.getElementById("logoutBar").classList.remove("hidden");
     document.getElementById("mainWrap").style.paddingTop = "56px";
@@ -190,10 +184,8 @@ function renderApps() {
     document.getElementById("mainWrap").style.paddingTop = "20px";
   }
 
-  // Admin badge
   document.getElementById("adminBadge").classList.toggle("hidden", !admin);
 
-  // Render cards
   let html = "";
   APPS.forEach(app => {
     const accessible = canAccess(app.slug);
@@ -217,7 +209,6 @@ function openApp(slug) {
     navigateToApp(slug);
     return;
   }
-  // Show password modal
   pendingSlug = slug;
   const app = APPS.find(a => a.slug === slug);
   document.getElementById("modalTitle").textContent = app ? app.name : "Enter password";
@@ -254,7 +245,6 @@ async function submitPassword() {
       setSession(data.token);
       closeModal();
       renderApps();
-      // Small delay for visual feedback
       setTimeout(() => navigateToApp(pendingSlug), 200);
     } else {
       document.getElementById("modalError").style.display = "block";
