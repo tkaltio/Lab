@@ -1,254 +1,557 @@
-
 <!DOCTYPE html>
-
-<html dir="ltr" lang="en">
-
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="color-scheme" content="light dark">
-<meta name="google" value="notranslate">
-
-<script>
-function addRow(name, url, isdir,
-    size, size_string, date_modified, date_modified_string) {
-  if (name == "." || name == "..")
-    return;
-
-  var root = document.location.pathname;
-  if (root.substr(-1) !== "/")
-    root += "/";
-
-  var tbody = document.getElementById("tbody");
-  var row = document.createElement("tr");
-  var file_cell = document.createElement("td");
-  var link = document.createElement("a");
-
-  link.className = isdir ? "icon dir" : "icon file";
-
-  if (isdir) {
-    name = name + "/";
-    url = url + "/";
-    size = 0;
-    size_string = "";
-  } else {
-    link.draggable = "true";
-    link.addEventListener("dragstart", onDragStart, false);
-  }
-  link.innerText = name;
-  link.href = root + url;
-
-  file_cell.dataset.value = name;
-  file_cell.appendChild(link);
-
-  row.appendChild(file_cell);
-  row.appendChild(createCell(size, size_string));
-  row.appendChild(createCell(date_modified, date_modified_string));
-
-  tbody.appendChild(row);
-}
-
-function onDragStart(e) {
-  var el = e.srcElement;
-  var name = el.innerText.replace(":", "");
-  var download_url_data = "application/octet-stream:" + name + ":" + el.href;
-  e.dataTransfer.setData("DownloadURL", download_url_data);
-  e.dataTransfer.effectAllowed = "copy";
-}
-
-function createCell(value, text) {
-  var cell = document.createElement("td");
-  cell.setAttribute("class", "detailsColumn");
-  cell.dataset.value = value;
-  cell.innerText = text;
-  return cell;
-}
-
-function start(location) {
-  var header = document.getElementById("header");
-  header.innerText = header.innerText.replace("LOCATION", location);
-
-  document.getElementById("title").innerText = header.innerText;
-}
-
-function onHasParentDirectory() {
-  var box = document.getElementById("parentDirLinkBox");
-  box.style.display = "block";
-
-  var root = document.location.pathname;
-  if (!root.endsWith("/"))
-    root += "/";
-
-  var link = document.getElementById("parentDirLink");
-  link.href = root + "..";
-}
-
-function sortTable(column) {
-  var theader = document.getElementById("theader");
-  var oldOrder = theader.cells[column].dataset.order || '1';
-  oldOrder = parseInt(oldOrder, 10)
-  var newOrder = 0 - oldOrder;
-  theader.cells[column].dataset.order = newOrder;
-
-  var tbody = document.getElementById("tbody");
-  var rows = tbody.rows;
-  var list = [], i;
-  for (i = 0; i < rows.length; i++) {
-    list.push(rows[i]);
-  }
-
-  list.sort(function(row1, row2) {
-    var a = row1.cells[column].dataset.value;
-    var b = row2.cells[column].dataset.value;
-    if (column) {
-      a = parseInt(a, 10);
-      b = parseInt(b, 10);
-      return a > b ? newOrder : a < b ? oldOrder : 0;
-    }
-
-    // Column 0 is text.
-    if (a > b)
-      return newOrder;
-    if (a < b)
-      return oldOrder;
-    return 0;
-  });
-
-  // Appending an existing child again just moves it.
-  for (i = 0; i < list.length; i++) {
-    tbody.appendChild(list[i]);
-  }
-}
-
-// Add event handlers to column headers.
-function addHandlers(element, column) {
-  element.onclick = (e) => sortTable(column);
-  element.onkeydown = (e) => {
-    if (e.key == 'Enter' || e.key == ' ') {
-      sortTable(column);
-      e.preventDefault();
-    }
-  };
-}
-
-function onLoad() {
-  addHandlers(document.getElementById('nameColumnHeader'), 0);
-  addHandlers(document.getElementById('sizeColumnHeader'), 1);
-  addHandlers(document.getElementById('dateColumnHeader'), 2);
-}
-
-window.addEventListener('DOMContentLoaded', onLoad);
-</script>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRO Intelligence Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+:root {
+  --bg: #08080e; --card: #0e0e16; --border: #1a1a28; --text: #e0e0e8;
+  --muted: #5c5c70; --green: #10b981; --red: #ef4444; --blue: #3b82f6;
+  --amber: #f59e0b; --purple: #8b5cf6; --cyan: #06b6d4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; padding:16px 12px; }
+.mono { font-family:'JetBrains Mono',monospace; }
+.wrap { max-width:1000px; margin:0 auto; }
 
-  h1 {
-    border-bottom: 1px solid #c0c0c0;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    white-space: nowrap;
-  }
+/* Header */
+.dash-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.dash-header h1 { font-size:18px; font-weight:700; letter-spacing:-0.3px; }
+.dash-sub { color:var(--muted); font-size:11px; margin-bottom:12px; }
+.refresh-bar { display:flex; gap:8px; align-items:center; }
+.refresh-btn { background:var(--blue); color:#fff; border:none; border-radius:6px; padding:7px 14px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; }
+.refresh-btn:disabled { opacity:0.4; }
+.last-update { font-size:10px; color:var(--muted); }
+.status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
+.status-loading { background:var(--amber); animation:pulse 1s infinite; }
+.status-done { background:var(--green); }
+.status-error { background:var(--red); }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 
-  table {
-    border-collapse: collapse;
-  }
+/* Grid */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:8px; }
+.grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px; }
+.full { grid-column:1/-1; }
 
-  th {
-    cursor: pointer;
-  }
+/* Cards */
+.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
+.card-label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px; }
+.card-val { font-size:20px; font-weight:700; }
+.card-val-sm { font-size:15px; font-weight:600; }
+.card-change { font-size:11px; margin-top:1px; }
+.card-note { font-size:10px; color:var(--muted); margin-top:3px; }
 
-  td.detailsColumn {
-    padding-inline-start: 2em;
-    text-align: end;
-    white-space: nowrap;
-  }
+/* Section headers */
+.section { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:16px 0 8px; padding-bottom:4px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px; }
+.section-icon { font-size:13px; }
 
-  a.icon {
-    padding-inline-start: 1.5em;
-    text-decoration: none;
-    user-select: auto;
-  }
+/* Thesis bar */
+.thesis-bar { display:flex; gap:4px; margin-bottom:8px; }
+.thesis-item { flex:1; padding:8px 10px; border-radius:6px; background:var(--card); border:1px solid var(--border); }
+.thesis-item-label { font-size:9px; color:var(--muted); text-transform:uppercase; }
+.thesis-item-val { font-size:13px; font-weight:600; margin-top:2px; }
 
-  a.icon:hover {
-    text-decoration: underline;
-  }
+/* News */
+.news-item { padding:10px 14px !important; border-left:3px solid var(--muted); margin-bottom:6px; }
+.news-signal { padding:2px 6px; border-radius:3px; font-size:9px; font-weight:700; }
+.news-bull { background:#10b98118; color:var(--green); border-left-color:var(--green); }
+.news-bear { background:#ef444418; color:var(--red); border-left-color:var(--red); }
+.news-neut { background:#3b82f618; color:var(--blue); border-left-color:var(--blue); }
+.news-head { font-size:12px; font-weight:600; margin-bottom:3px; }
+.news-body { font-size:11px; color:#808090; line-height:1.5; }
+.news-rel { font-size:10px; color:var(--amber); margin-top:4px; }
+.news-src { font-size:9px; color:var(--muted); margin-top:3px; }
+.news-cat { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
 
-  a.file {
-    background : url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAABnRSTlMAAAAAAABupgeRAAABEElEQVR42nRRx3HDMBC846AHZ7sP54BmWAyrsP588qnwlhqw/k4v5ZwWxM1hzmGRgV1cYqrRarXoH2w2m6qqiqKIR6cPtzc3xMSML2Te7XZZlnW7Pe/91/dX47WRBHuA9oyGmRknzGDjab1ePzw8bLfb6WRalmW4ip9FDVpYSWZgOp12Oh3nXJ7nxoJSGEciteP9y+fH52q1euv38WosqA6T2gGOT44vry7BEQtJkMAMMpa6JagAMcUfWYa4hkkzAc7fFlSjwqCoOUYAF5RjHZPVCFBOtSBGfgUDji3c3jpibeEMQhIMh8NwshqyRsBJgvF4jMs/YlVR5KhgNpuBLzk0OcUiR3CMhcPaOzsZiAAA/AjmaB3WZIkAAAAASUVORK5CYII=") left top no-repeat;
-  }
+/* Analyst */
+.analyst-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); }
+.analyst-row:last-child { border:none; }
 
-  a.dir {
-    background : url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABt0lEQVR42oxStZoWQRCs2cXdHTLcHZ6EjAwnQWIkJyQlRt4Cd3d3d1n5d7q7ju1zv/q+mh6taQsk8fn29kPDRo87SDMQcNAUJgIQkBjdAoRKdXjm2mOH0AqS+PlkP8sfp0h93iu/PDji9s2FzSSJVg5ykZqWgfGRr9rAAAQiDFoB1OfyESZEB7iAI0lHwLREQBcQQKqo8p+gNUCguwCNAAUQAcFOb0NNGjT+BbUC2YsHZpWLhC6/m0chqIoM1LKbQIIBwlTQE1xAo9QDGDPYf6rkTpPc92gCUYVJAZjhyZltJ95f3zuvLYRGWWCUNkDL2333McBh4kaLlxg+aTmyL7c2xTjkN4Bt7oE3DBP/3SRz65R/bkmBRPGzcRNHYuzMjaj+fdnaFoJUEdTSXfaHbe7XNnMPyqryPcmfY+zURaAB7SHk9cXSH4fQ5rojgCAVIuqCNWgRhLYLhJB4k3iZfIPtnQiCpjAzeBIRXMA6emAqoEbQSoDdGxFUrxS1AYcpaNbBgyQBGJEOnYOeENKR/iAd1npusI4C75/c3539+nbUjOgZV5CkAU27df40lH+agUdIuA/EAgDmZnwZlhDc0wAAAABJRU5ErkJggg==") left top no-repeat;
-  }
+/* Peers */
+.peer-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); }
+.peer-row:last-child { border:none; }
 
-  a.up {
-    background : url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACM0lEQVR42myTA+w1RxRHz+zftmrbdlTbtq04qRGrCmvbDWp9tq3a7tPcub8mj9XZ3eHOGQdJAHw77/LbZuvnWy+c/CIAd+91CMf3bo+bgcBiBAGIZKXb19/zodsAkFT+3px+ssYfyHTQW5tr05dCOf3xN49KaVX9+2zy1dX4XMk+5JflN5MBPL30oVsvnvEyp+18Nt3ZAErQMSFOfelCFvw0HcUloDayljZkX+MmamTAMTe+d+ltZ+1wEaRAX/MAnkJdcujzZyErIiVSzCEvIiq4O83AG7LAkwsfIgAnbncag82jfPPdd9RQyhPkpNJvKJWQBKlYFmQA315n4YPNjwMAZYy0TgAweedLmLzTJSTLIxkWDaVCVfAbbiKjytgmm+EGpMBYW0WwwbZ7lL8anox/UxekaOW544HO0ANAshxuORT/RG5YSrjlwZ3lM955tlQqbtVMlWIhjwzkAVFB8Q9EAAA3AFJ+DR3DO/Pnd3NPi7H117rAzWjpEs8vfIqsGZpaweOfEAAFJKuM0v6kf2iC5pZ9+fmLSZfWBVaKfLLNOXj6lYY0V2lfyVCIsVzmcRV9Y0fx02eTaEwhl2PDrXcjFdYRAohQmS8QEFLCLKGYA0AeEakhCCFDXqxsE0AQACgAQp5w96o0lAXuNASeDKWIvADiHwigfBINpWKtAXJvCEKWgSJNbRvxf4SmrnKDpvZavePu1K/zu/due1X/6Nj90MBd/J2Cic7WjBp/jUdIuA8AUtd65M+PzXIAAAAASUVORK5CYII=") left top no-repeat;
-  }
+/* Skeleton */
+.skeleton { background:linear-gradient(90deg,#1a1a28 25%,#22222e 50%,#1a1a28 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:4px; height:20px; }
+@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
 
-  html[dir=rtl] a {
-    background-position-x: right;
-  }
+/* P&L card special */
+.pnl-card { border:1px solid var(--border); border-left:3px solid var(--blue); }
 
-  #parentDirLinkBox {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-  }
+/* Progress bar for target/stop */
+.prog-wrap { height:4px; background:#1a1a28; border-radius:2px; margin-top:6px; position:relative; }
+.prog-fill { height:100%; border-radius:2px; position:absolute; left:0; top:0; }
+
+.hidden { display:none !important; }
+@media(max-width:600px) {
+  .grid-4 { grid-template-columns:1fr 1fr; }
+  .grid-3 { grid-template-columns:1fr 1fr; }
+  .thesis-bar { flex-wrap:wrap; }
+}
 </style>
-
-<title id="title"></title>
-
 </head>
-
 <body>
+<script>
+(function(){
+  try {
+    const raw = localStorage.getItem("lab_session");
+    if(!raw){window.location.href="/";return;}
+    const s = JSON.parse(atob(raw));
+    if(Date.now()-s.ts > 7*24*60*60*1000){localStorage.removeItem("lab_session");window.location.href="/";return;}
+    if(s.role!=="admin" && s.app!=="fro-dashboard"){window.location.href="/";return;}
+  }catch{window.location.href="/";}
+})();
+</script>
+<div style="position:fixed;top:0;left:0;right:0;background:#0e0e16;border-bottom:1px solid #1a1a28;padding:6px 16px;z-index:999;display:flex;justify-content:space-between;align-items:center">
+  <a href="/" style="color:#5c5c70;font-size:11px;text-decoration:none;font-family:DM Sans,sans-serif">2190 Back to Lab</a>
+  <span style="color:#3a3a4a;font-size:10px;font-family:DM Sans,sans-serif">FRO Intelligence</span>
+</div>
+<div style="height:32px"></div>
+<div class="wrap">
+  <!-- Header -->
+  <div class="dash-header">
+    <h1>FRO Intelligence Dashboard</h1>
+    <div class="refresh-bar">
+      <span id="statusDot" class="status-dot"></span>
+      <span id="statusText" class="last-update">Ready</span>
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
+    </div>
+  </div>
+  <div class="dash-sub">Frontline plc (NYSE: FRO / OSE: FRO) · LONG 330 NOK · Target 466 NOK · Stop 277 NOK · Illustrative Portfolio</div>
 
-<h1 id="header">Index of LOCATION</h1>
+  <!-- P&L + Prices row -->
+  <div id="priceSection" class="grid-4"></div>
 
-<div id="parentDirLinkBox" style="display:none">
-  <a id="parentDirLink" class="icon up">
-    <span id="parentDirText">[parent directory]</span>
-  </a>
+  <!-- Thesis drivers -->
+  <div class="section"><span class="section-icon">⚡</span> Thesis Drivers</div>
+  <div id="thesisSection" class="thesis-bar"></div>
+
+  <!-- Freight rates -->
+  <div class="section"><span class="section-icon">🚢</span> Freight & Shipping</div>
+  <div id="freightSection" class="grid-3"></div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="card" style="padding-bottom:8px">
+      <div class="card-label">VLCC TD3C (AG→China) — 30 Days</div>
+      <div style="height:140px;margin-top:6px"><canvas id="chartTD3C"></canvas></div>
+    </div>
+    <div class="card" style="padding-bottom:8px">
+      <div class="card-label">VLCC 1yr Time Charter — 30 Days</div>
+      <div style="height:140px;margin-top:6px"><canvas id="chartTC1Y"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Conflict tracker -->
+  <div class="section"><span class="section-icon">🔴</span> Conflict Status</div>
+  <div id="conflictSection" class="grid-2"></div>
+
+  <!-- Peers -->
+  <div class="section"><span class="section-icon">📊</span> Peer Comparison</div>
+  <div id="peerSection" class="card"></div>
+
+  <!-- Analysts -->
+  <div class="section"><span class="section-icon">🎯</span> Analyst Ratings</div>
+  <div id="analystSection" class="card"></div>
+
+  <!-- Macro -->
+  <div class="section"><span class="section-icon">🌐</span> Macro Risk Monitor</div>
+  <div id="macroSection" class="grid-3"></div>
+
+  <!-- News -->
+  <div class="section"><span class="section-icon">📰</span> Intelligence Feed</div>
+  <div id="newsSection"></div>
+
+  <div style="margin-top:16px;padding-top:10px;border-top:1px solid var(--border);font-size:9px;color:var(--muted)">
+    Illustrative portfolio · Data via Claude API web search · Not real-time · Verify on Bloomberg before acting
+  </div>
 </div>
 
-<table>
-  <thead>
-    <tr class="header" id="theader">
-      <th id="nameColumnHeader" tabindex=0 role="button">Name</th>
-      <th id="sizeColumnHeader" class="detailsColumn" tabindex=0 role="button">
-        Size
-      </th>
-      <th id="dateColumnHeader" class="detailsColumn" tabindex=0 role="button">
-        Date modified
-      </th>
-    </tr>
-  </thead>
-  <tbody id="tbody">
-  </tbody>
-</table>
+<script>
+const ENTRY_NOK = 330;
+const TARGET_NOK = 466;
+const STOP_NOK = 277;
+const ENTRY_EUR = 28.88; // approx at NOK/EUR ~0.0875
+const CACHE_KEY = "fro-dashboard-v5";
 
+let cache = {};
+
+async function loadCache() {
+  try { const r = await Promise.resolve(localStorage.getItem(CACHE_KEY) ? {value: localStorage.getItem(CACHE_KEY)} : null); if(r?.value) cache = JSON.parse(r.value); } catch{}
+  if(cache.prices) renderPrices(cache.prices);
+  if(cache.thesis) renderThesis(cache.thesis);
+  if(cache.freight) renderFreight(cache.freight);
+  if(cache.conflict) renderConflict(cache.conflict);
+  if(cache.peers) renderPeers(cache.peers);
+  if(cache.analysts) renderAnalysts(cache.analysts);
+  if(cache.macro) renderMacro(cache.macro);
+  if(cache.news) renderNews(cache.news);
+  if(cache.rateHistory) renderRateCharts(cache.rateHistory);
+  if(cache.lastUpdate) {
+    $("statusDot").className = "status-dot status-done";
+    $("statusText").textContent = "Last: " + new Date(cache.lastUpdate).toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  }
+}
+async function saveCache() { try { await Promise.resolve(localStorage.setItem(CACHE_KEY, JSON.stringify(cache))); } catch{} }
+const $ = id => document.getElementById(id);
+
+function setStatus(s, msg) {
+  $("statusDot").className = "status-dot status-" + s;
+  $("statusText").textContent = msg;
+}
+
+function skel(id) { $(id).innerHTML = '<div class="skeleton" style="height:60px;margin-bottom:6px"></div>'.repeat(2); }
+
+async function apiCall(prompt) {
+  const res = await fetch("/api/claude-proxy", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      model:"claude-sonnet-4-20250514", max_tokens:1500,
+      tools:[{type:"web_search_20250305",name:"web_search"}],
+      messages:[{role:"user",content:prompt}]
+    })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message);
+  const text = (data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+  const m = text.match(/\{[\s\S]*\}/);
+  if(!m) throw new Error("No JSON");
+  return JSON.parse(m[0]);
+}
+
+async function refreshAll() {
+  $("refreshBtn").disabled = true;
+  setStatus("loading", "Scanning...");
+
+  const tasks = [
+    fetchPrices(),
+    fetchThesisAndFreight(),
+    fetchConflictAndMacro(),
+    fetchPeersAndAnalysts(),
+    fetchNews(),
+    fetchRateHistory()
+  ];
+
+  const results = await Promise.allSettled(tasks);
+  const failed = results.filter(r=>r.status==="rejected").length;
+
+  cache.lastUpdate = new Date().toISOString();
+  await saveCache();
+
+  setStatus(failed>2?"error":"done", failed>0 ? `Done (${failed} failed)` : "Updated " + new Date().toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));
+  $("refreshBtn").disabled = false;
+}
+
+// === FETCH FUNCTIONS ===
+
+async function fetchPrices() {
+  const d = await apiCall(`Search for the LATEST prices of Frontline (FRO) on BOTH Oslo (NOK) and NYSE (USD). Also get USDNOK exchange rate and oil prices. Return ONLY JSON:
+{"fro_nok":number,"fro_nok_change_pct":number,"fro_usd":number,"fro_usd_change_pct":number,"usdnok":number,"brent_usd":number,"brent_change_pct":number,"wti_usd":number,"eurusd":number,"sp500":number,"sp500_change_pct":number,"vix":number,"nyse_open":true or false,"oslo_open":true or false,"as_of":"date string"}`);
+  cache.prices = d;
+  renderPrices(d);
+}
+
+async function fetchThesisAndFreight() {
+  const d = await apiCall(`Search for the LATEST on: VLCC tanker day rates, Strait of Hormuz vessel traffic, shipping insurance status. Return ONLY JSON:
+{"vlcc_td3c_rate":number or null,"vlcc_1yr_tc_rate":number or null,"suezmax_rate":number or null,"aframax_rate":number or null,"bdti_index":number or null,"hormuz_daily_transits":number or null,"vessels_stranded":number or null,"hormuz_days_closed":number,"insurance_status":"string describing current war risk insurance state","rate_source":"source name","as_of":"date"}`);
+  cache.thesis = {hormuz_transits:d.hormuz_daily_transits,vessels_stranded:d.vessels_stranded,days_closed:d.hormuz_days_closed,insurance:d.insurance_status};
+  cache.freight = {td3c:d.vlcc_td3c_rate,tc_1yr:d.vlcc_1yr_tc_rate,suezmax:d.suezmax_rate,aframax:d.aframax_rate,bdti:d.bdti_index,source:d.rate_source};
+  renderThesis(cache.thesis);
+  renderFreight(cache.freight);
+}
+
+async function fetchConflictAndMacro() {
+  const d = await apiCall(`Search for the LATEST Iran war status and US macro data. Return ONLY JSON:
+{"war_day":number,"ceasefire_status":"REJECTED/POSSIBLE/NEGOTIATIONS/AGREED","latest_ceasefire_signal":"one sentence","iran_leadership":"who is in charge now","escalation_direction":"ESCALATING/STABLE/DE-ESCALATING","red_sea_status":"OPEN/DISRUPTED/CLOSED","countries_involved":number,"us_nfp_latest":number,"us_unemployment":number,"us_ism_mfg":number or null,"next_fomc_date":"date","spr_release":"YES/NO/DISCUSSED","oil_above_100":true or false,"conflict_source":"source"}`);
+  cache.conflict = {day:d.war_day,ceasefire:d.ceasefire_status,ceasefire_signal:d.latest_ceasefire_signal,leadership:d.iran_leadership,escalation:d.escalation_direction,red_sea:d.red_sea_status,countries:d.countries_involved};
+  cache.macro = {nfp:d.us_nfp_latest,unemp:d.us_unemployment,ism:d.us_ism_mfg,fomc:d.next_fomc_date,spr:d.spr_release,oil100:d.oil_above_100};
+  renderConflict(cache.conflict);
+  renderMacro(cache.macro);
+}
+
+async function fetchPeersAndAnalysts() {
+  const d = await apiCall(`Search for LATEST stock prices and analyst info. Return ONLY JSON:
+{"peers":[{"ticker":"DHT","price_usd":number,"change_pct":number},{"ticker":"INSW","price_usd":number,"change_pct":number},{"ticker":"STNG","price_usd":number,"change_pct":number}],"fro_analysts":{"buy":number,"hold":number,"sell":number,"avg_pt_usd":number,"high_pt_usd":number,"low_pt_usd":number,"latest_action":"string describing most recent upgrade/downgrade with analyst name and date"}}`);
+  cache.peers = d.peers;
+  cache.analysts = d.fro_analysts;
+  renderPeers(d.peers);
+  renderAnalysts(d.fro_analysts);
+}
+
+async function fetchNews() {
+  const d = await apiCall(`Search for the LATEST news relevant to a LONG position in Frontline (FRO) tanker stock. Cover: Hormuz shipping, Iran war, VLCC rates, oil prices, FRO company news. Return ONLY JSON:
+{"items":[{"cat":"HORMUZ|IRAN|FREIGHT|OIL|FRO|MACRO","signal":"BULLISH|BEARISH|NEUTRAL","headline":"short","detail":"2-3 sentences","relevance":"why it matters for FRO position","source":"name"}]}
+Return 6-8 items ranked by importance.`);
+  cache.news = d.items || [];
+  renderNews(cache.news);
+}
+
+async function fetchRateHistory() {
+  const d = await apiCall(`Search for VLCC tanker rate history over the past 30 days (approximately early February 2026 to early March 2026). I need the TD3C (AG to China VLCC spot rate TCE equivalent in USD/day) and the 1-year VLCC time charter rate. Search multiple sources: Baltic Exchange reports, Clarksons, Seatrade Maritime, Hellenic Shipping News, Fearnleys, broker reports. Collect as many weekly or daily data points as possible.
+
+Return ONLY JSON:
+{
+  "td3c_history": [
+    {"date":"YYYY-MM-DD","rate":number}
+  ],
+  "tc_1yr_history": [
+    {"date":"YYYY-MM-DD","rate":number}
+  ],
+  "notes":"brief note on data quality/gaps"
+}
+Include at least 6-8 data points per series spanning the full 30-day period. If exact daily data is unavailable, use weekly assessments. Dates must be chronological.`);
+  cache.rateHistory = d;
+  renderRateCharts(d);
+}
+
+// === RENDER FUNCTIONS ===
+
+function renderPrices(d) {
+  if(!d) return;
+  // Primary price is NOK from Oslo
+  let froNok = d.fro_nok || null;
+  // If NYSE is open and we have USD price + USDNOK, compute a live NOK-equivalent
+  const usdnok = d.usdnok || 11.3;
+  const froUsdInNok = d.fro_usd ? Math.round(d.fro_usd * usdnok * 100) / 100 : null;
+  // Use the most recent available: if NYSE is open, show both
+  const displayNok = froNok || froUsdInNok;
+  const pnlPct = displayNok ? ((displayNok - ENTRY_NOK)/ENTRY_NOK*100) : null;
+  const pnlNok = displayNok ? (displayNok - ENTRY_NOK) : null;
+  const progPct = displayNok ? Math.max(0,Math.min(100,((displayNok-STOP_NOK)/(TARGET_NOK-STOP_NOK))*100)) : 50;
+
+  // Build FRO price card content
+  let froCardLines = '';
+  if (froNok) {
+    froCardLines += `<div class="card-val mono">${froNok.toFixed(2)} <span style="font-size:12px;color:var(--muted)">NOK</span></div>`;
+    froCardLines += `<div class="card-change mono" style="color:${(d.fro_nok_change_pct||0)>=0?'var(--green)':'var(--red)'}">${d.fro_nok_change_pct!=null?(d.fro_nok_change_pct>=0?'+':'')+d.fro_nok_change_pct.toFixed(2)+'%':''}${d.oslo_open?' · OSE live':' · OSE close'}</div>`;
+  }
+  if (d.fro_usd) {
+    froCardLines += `<div style="margin-top:${froNok?'6':'0'}px">`;
+    if (!froNok) {
+      // Oslo closed, show USD→NOK as primary
+      froCardLines += `<div class="card-val mono">${froUsdInNok?froUsdInNok.toFixed(2):''} <span style="font-size:12px;color:var(--muted)">NOK</span></div>`;
+      froCardLines += `<div class="card-change mono" style="color:${(d.fro_usd_change_pct||0)>=0?'var(--green)':'var(--red)'}">from NYSE $${d.fro_usd.toFixed(2)}${d.nyse_open?' · live':' · close'}</div>`;
+    } else {
+      // Oslo is available, show NYSE as secondary
+      froCardLines += `<div class="card-note">NYSE: $${d.fro_usd.toFixed(2)} (≈${froUsdInNok?froUsdInNok.toFixed(1):''} NOK)${d.nyse_open?' · live':''}</div>`;
+    }
+    froCardLines += `</div>`;
+  }
+  if (!froNok && !d.fro_usd) {
+    froCardLines = `<div class="card-val mono">—</div>`;
+  }
+
+  $("priceSection").innerHTML = `
+    <div class="card pnl-card">
+      <div class="card-label">Portfolio P&L</div>
+      <div class="card-val mono" style="color:${pnlPct>=0?"var(--green)":"var(--red)"}">${pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%':'—'}</div>
+      <div class="card-change mono" style="color:${pnlNok>=0?"var(--green)":"var(--red)"}">${pnlNok!=null?(pnlNok>=0?'+':'')+pnlNok.toFixed(1)+' NOK/share':'—'}</div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${progPct}%;background:${progPct>60?'var(--green)':progPct<30?'var(--red)':'var(--amber)'}"></div></div>
+      <div class="card-note">Stop ${STOP_NOK} → Target ${TARGET_NOK} NOK</div>
+    </div>
+    <div class="card">
+      <div class="card-label">FRO Share Price</div>
+      ${froCardLines}
+    </div>
+    <div class="card">
+      <div class="card-label">Brent Crude</div>
+      <div class="card-val mono" style="color:${(d.brent_usd||0)>=100?'var(--red)':'var(--amber)'}">$${d.brent_usd||'—'}</div>
+      <div class="card-change mono" style="color:${(d.brent_change_pct||0)>=0?'var(--green)':'var(--red)'}">${d.brent_change_pct!=null?(d.brent_change_pct>=0?'+':'')+d.brent_change_pct.toFixed(2)+'%':'—'}</div>
+      <div class="card-note">WTI: $${d.wti_usd||'—'}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">FX & Macro</div>
+      <div class="card-val-sm mono">USD/NOK ${usdnok}</div>
+      <div class="card-val-sm mono" style="margin-top:4px">VIX ${d.vix||'—'}</div>
+      <div class="card-note">S&P ${d.sp500||'—'} (${d.sp500_change_pct!=null?(d.sp500_change_pct>=0?'+':'')+d.sp500_change_pct.toFixed(2)+'%':'—'}) · EUR/USD ${d.eurusd||'—'}</div>
+    </div>`;
+}
+
+function renderThesis(d) {
+  if(!d) return;
+  const ceasefireColor = d.ceasefire==="REJECTED"?"var(--green)":d.ceasefire==="AGREED"?"var(--red)":"var(--amber)";
+  $("thesisSection").innerHTML = `
+    <div class="thesis-item"><div class="thesis-item-label">Hormuz Closed</div><div class="thesis-item-val mono" style="color:var(--red)">Day ${d.days_closed||'?'}</div></div>
+    <div class="thesis-item"><div class="thesis-item-label">Daily Transits</div><div class="thesis-item-val mono" style="color:${(d.hormuz_transits||0)<10?'var(--green)':'var(--amber)'}">${d.hormuz_transits!=null?d.hormuz_transits:'—'}</div></div>
+    <div class="thesis-item"><div class="thesis-item-label">Vessels Stranded</div><div class="thesis-item-val mono">${d.vessels_stranded||'—'}</div></div>
+    <div class="thesis-item"><div class="thesis-item-label">Insurance</div><div class="thesis-item-val" style="font-size:10px;color:var(--amber)">${d.insurance||'—'}</div></div>`;
+}
+
+function renderFreight(d) {
+  if(!d) return;
+  $("freightSection").innerHTML = `
+    <div class="card"><div class="card-label">VLCC TD3C (AG→China)</div><div class="card-val-sm mono" style="color:var(--green)">${d.td3c?'$'+Number(d.td3c).toLocaleString()+'/day':'—'}</div><div class="card-note">${d.source||''}</div></div>
+    <div class="card"><div class="card-label">VLCC 1yr TC Rate</div><div class="card-val-sm mono">${d.tc_1yr?'$'+Number(d.tc_1yr).toLocaleString()+'/day':'—'}</div></div>
+    <div class="card"><div class="card-label">BDTI Index</div><div class="card-val-sm mono">${d.bdti||'—'}</div><div class="card-note">Suez: ${d.suezmax?'$'+Number(d.suezmax).toLocaleString():'—'} · Afra: ${d.aframax?'$'+Number(d.aframax).toLocaleString():'—'}</div></div>`;
+}
+
+function renderRateCharts(d) {
+  if (!d) return;
+  renderOneChart("chartTD3C", d.td3c_history || [], "#10b981", "TD3C");
+  renderOneChart("chartTC1Y", d.tc_1yr_history || [], "#3b82f6", "1yr TC");
+}
+
+function renderOneChart(canvasId, data, color, label) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || !data.length) return;
+  const ctx = canvas.getContext("2d");
+
+  const existing = Chart.getChart(canvasId);
+  if (existing) existing.destroy();
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+  gradient.addColorStop(0, color + "40");
+  gradient.addColorStop(1, color + "00");
+
+  const labels = data.map(p => {
+    const d = p.date.split("-");
+    return d[2] + "." + d[1];
+  });
+  const values = data.map(p => p.rate);
+  const minVal = Math.min(...values);
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        borderColor: color,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointBackgroundColor: "#0e0e16",
+        pointBorderColor: color,
+        pointBorderWidth: 2,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1a1a28",
+          borderColor: "#2a2a3a",
+          borderWidth: 1,
+          titleFont: { family: "'JetBrains Mono', monospace", size: 10 },
+          bodyFont: { family: "'JetBrains Mono', monospace", size: 11 },
+          callbacks: {
+            label: (ctx) => "$" + Number(ctx.parsed.y).toLocaleString() + "/day"
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: "#5c5c70", font: { size: 9, family: "'JetBrains Mono', monospace" }, maxRotation: 0 }
+        },
+        y: {
+          grid: { color: "#1a1a2810" },
+          ticks: {
+            color: "#5c5c70",
+            font: { size: 9, family: "'JetBrains Mono', monospace" },
+            callback: v => "$" + (v >= 1000 ? (v/1000).toFixed(0) + "k" : v)
+          },
+          min: Math.max(0, minVal * 0.7),
+        }
+      }
+    }
+  });
+}
+
+function renderConflict(d) {
+  if(!d) return;
+  const escColor = d.escalation==="ESCALATING"?"var(--red)":d.escalation==="DE-ESCALATING"?"var(--green)":"var(--amber)";
+  const cfColor = d.ceasefire==="REJECTED"?"var(--green)":d.ceasefire==="AGREED"?"var(--red)":"var(--amber)";
+  $("conflictSection").innerHTML = `
+    <div class="card">
+      <div class="card-label">Iran War — Day ${d.day||'?'}</div>
+      <div style="margin-top:6px"><span style="font-size:10px;color:var(--muted)">Escalation:</span> <span class="mono" style="font-size:12px;font-weight:600;color:${escColor}">${d.escalation||'—'}</span></div>
+      <div style="margin-top:4px"><span style="font-size:10px;color:var(--muted)">Countries involved:</span> <span class="mono" style="font-size:12px;font-weight:600">${d.countries||'—'}</span></div>
+      <div style="margin-top:4px"><span style="font-size:10px;color:var(--muted)">Leadership:</span> <span style="font-size:11px">${d.leadership||'—'}</span></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Ceasefire Status</div>
+      <div class="card-val-sm mono" style="color:${cfColor};margin-top:4px">${d.ceasefire||'—'}</div>
+      <div style="margin-top:6px;font-size:11px;color:#808090;line-height:1.5">${d.ceasefire_signal||'—'}</div>
+      <div style="margin-top:6px"><span style="font-size:10px;color:var(--muted)">Red Sea:</span> <span class="mono" style="font-size:11px;color:${d.red_sea==="OPEN"?"var(--green)":"var(--red)"}">${d.red_sea||'—'}</span></div>
+    </div>`;
+}
+
+function renderPeers(peers) {
+  if(!peers||!peers.length) { $("peerSection").innerHTML='<div style="color:var(--muted);font-size:12px">No data</div>'; return; }
+  const usdnok = (cache.prices && cache.prices.usdnok) || 11.3;
+  let h = '';
+  peers.forEach(p => {
+    const c = (p.change_pct||0)>=0?'var(--green)':'var(--red)';
+    const nokPrice = (p.price_usd * usdnok).toFixed(1);
+    h += `<div class="peer-row">
+      <span style="font-weight:600;font-size:13px">${p.ticker}</span>
+      <span class="mono" style="font-size:13px">$${p.price_usd} <span style="font-size:10px;color:var(--muted)">(≈${nokPrice} NOK)</span></span>
+      <span class="mono" style="font-size:12px;color:${c}">${(p.change_pct||0)>=0?'+':''}${(p.change_pct||0).toFixed(2)}%</span>
+    </div>`;
+  });
+  $("peerSection").innerHTML = h;
+}
+
+function renderAnalysts(a) {
+  if(!a) { $("analystSection").innerHTML='<div style="color:var(--muted);font-size:12px">No data</div>'; return; }
+  const total = (a.buy||0)+(a.hold||0)+(a.sell||0);
+  const buyPct = total>0?((a.buy||0)/total*100):0;
+  $("analystSection").innerHTML = `
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:8px">
+      <div><span style="font-size:10px;color:var(--muted)">Buy</span> <span class="mono" style="font-size:14px;font-weight:600;color:var(--green)">${a.buy||0}</span></div>
+      <div><span style="font-size:10px;color:var(--muted)">Hold</span> <span class="mono" style="font-size:14px;font-weight:600">${a.hold||0}</span></div>
+      <div><span style="font-size:10px;color:var(--muted)">Sell</span> <span class="mono" style="font-size:14px;font-weight:600;color:var(--red)">${a.sell||0}</span></div>
+      <div style="margin-left:auto"><span style="font-size:10px;color:var(--muted)">Avg PT</span> <span class="mono" style="font-size:14px;font-weight:600">$${a.avg_pt_usd||'—'}</span></div>
+      <div><span style="font-size:10px;color:var(--muted)">Range</span> <span class="mono" style="font-size:12px">$${a.low_pt_usd||'—'} — $${a.high_pt_usd||'—'}</span></div>
+    </div>
+    <div class="prog-wrap" style="height:6px;margin:0"><div class="prog-fill" style="width:${buyPct}%;background:var(--green)"></div></div>
+    ${a.latest_action?`<div style="margin-top:8px;font-size:11px;color:#808090">${a.latest_action}</div>`:''}`;
+}
+
+function renderMacro(d) {
+  if(!d) return;
+  $("macroSection").innerHTML = `
+    <div class="card"><div class="card-label">US NFP (Latest)</div><div class="card-val-sm mono" style="color:${(d.nfp||0)<0?'var(--red)':'var(--green)'}">${d.nfp!=null?d.nfp.toLocaleString():'—'}</div><div class="card-note">Unemployment: ${d.unemp||'—'}%</div></div>
+    <div class="card"><div class="card-label">ISM Manufacturing</div><div class="card-val-sm mono" style="color:${(d.ism||50)<50?'var(--red)':'var(--green)'}">${d.ism||'—'}</div><div class="card-note">Next FOMC: ${d.fomc||'—'}</div></div>
+    <div class="card"><div class="card-label">Risk Flags</div>
+      <div style="margin-top:4px;font-size:11px">${d.oil100?'<span style="color:var(--red)">⚠ Oil >$100</span>':'<span style="color:var(--green)">Oil <$100</span>'}</div>
+      <div style="margin-top:2px;font-size:11px">${d.spr==="YES"?'<span style="color:var(--amber)">⚠ SPR release active</span>':d.spr==="DISCUSSED"?'<span style="color:var(--amber)">SPR release discussed</span>':'<span style="color:var(--muted)">No SPR release</span>'}</div>
+    </div>`;
+}
+
+function renderNews(items) {
+  if(!items||!items.length) { $("newsSection").innerHTML='<div class="card" style="color:var(--muted);font-size:12px;text-align:center;padding:24px">No intel yet. Hit Refresh All.</div>'; return; }
+  let h = '';
+  items.forEach(n => {
+    const cls = n.signal==="BULLISH"?"news-bull":n.signal==="BEARISH"?"news-bear":"news-neut";
+    h += `<div class="card news-item ${cls}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span class="news-cat">${n.cat||''}</span>
+        <span class="news-signal ${cls} mono">${n.signal}</span>
+      </div>
+      <div class="news-head">${n.headline||''}</div>
+      <div class="news-body">${n.detail||''}</div>
+      ${n.relevance?`<div class="news-rel">→ ${n.relevance}</div>`:''}
+      ${n.source?`<div class="news-src">${n.source}</div>`:''}
+    </div>`;
+  });
+  $("newsSection").innerHTML = h;
+}
+
+// Init — load cache then auto-refresh
+(async () => {
+  await loadCache();
+  // Auto-refresh if cache is older than 2 hours or empty
+  const age = cache.lastUpdate ? (Date.now() - new Date(cache.lastUpdate).getTime()) : Infinity;
+  if(age > 2*60*60*1000) refreshAll();
+})();
+</script>
 </body>
-
 </html>
-<script>// Copyright 2012 The Chromium Authors
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-"use strict";var loadTimeData;class LoadTimeData{constructor(){this.data_=null}set data(value){expect(!this.data_,"Re-setting data.");this.data_=value}valueExists(id){return id in this.data_}getValue(id){expect(this.data_,"No data. Did you remember to include strings.js?");const value=this.data_[id];expect(typeof value!=="undefined","Could not find value for "+id);return value}getString(id){const value=this.getValue(id);expectIsType(id,value,"string");return value}getStringF(id,var_args){const value=this.getString(id);if(!value){return""}const args=Array.prototype.slice.call(arguments);args[0]=value;return this.substituteString.apply(this,args)}substituteString(label,var_args){const varArgs=arguments;return label.replace(/\$(.|$|\n)/g,(function(m){expect(m.match(/\$[$1-9]/),"Unescaped $ found in localized string.");return m==="$$"?"$":varArgs[m[1]]}))}getBoolean(id){const value=this.getValue(id);expectIsType(id,value,"boolean");return value}getInteger(id){const value=this.getValue(id);expectIsType(id,value,"number");expect(value===Math.floor(value),"Number isn't integer: "+value);return value}overrideValues(replacements){expect(typeof replacements==="object","Replacements must be a dictionary object.");for(const key in replacements){this.data_[key]=replacements[key]}}}function expect(condition,message){if(!condition){throw new Error("Unexpected condition on "+document.location.href+": "+message)}}function expectIsType(id,value,type){expect(typeof value===type,"["+value+"] ("+id+") is not a "+type)}expect(!loadTimeData,"should only include this file once");loadTimeData=new LoadTimeData;window.loadTimeData=loadTimeData;console.warn("crbug/1173575, non-JS module files deprecated.");</script><script>loadTimeData.data = {"header":"Index of LOCATION","headerDateModified":"Date modified","headerName":"Name","headerSize":"Size","language":"en","parentDirText":"[parent directory]","textdirection":"ltr"};</script><script>start("C:\\");</script>
-<script>addRow("$Recycle.Bin","$Recycle.Bin",1,0,"0 B",1770292772,"05/02/2026, 13:59:32");</script>
-<script>addRow("$WinREAgent","$WinREAgent",1,0,"0 B",1772105714,"26/02/2026, 13:35:14");</script>
-<script>addRow("Config.Msi","Config.Msi",1,0,"0 B",1773132005,"10/03/2026, 10:40:05");</script>
-<script>addRow("Documents and Settings","Documents%20and%20Settings",1,0,"0 B",1769072804,"22/01/2026, 11:06:44");</script>
-<script>addRow("hp","hp",1,0,"0 B",1769078950,"22/01/2026, 12:49:10");</script>
-<script>addRow("HPIA","HPIA",1,0,"0 B",1769078836,"22/01/2026, 12:47:16");</script>
-<script>addRow("inetpub","inetpub",1,0,"0 B",1749310758,"07/06/2025, 18:39:18");</script>
-<script>addRow("OneDriveTemp","OneDriveTemp",1,0,"0 B",1770303800,"05/02/2026, 17:03:20");</script>
-<script>addRow("PerfLogs","PerfLogs",1,0,"0 B",1711956366,"01/04/2024, 10:26:06");</script>
-<script>addRow("Program Files","Program%20Files",1,0,"0 B",1773153131,"10/03/2026, 16:32:11");</script>
-<script>addRow("Program Files (x86)","Program%20Files%20(x86)",1,0,"0 B",1770294257,"05/02/2026, 14:24:17");</script>
-<script>addRow("ProgramData","ProgramData",1,0,"0 B",1773154417,"10/03/2026, 16:53:37");</script>
-<script>addRow("Recovery","Recovery",1,0,"0 B",1769079949,"22/01/2026, 13:05:49");</script>
-<script>addRow("SWSetup","SWSetup",1,0,"0 B",1772020228,"25/02/2026, 13:50:28");</script>
-<script>addRow("System Volume Information","System%20Volume%20Information",1,0,"0 B",1770303771,"05/02/2026, 17:02:51");</script>
-<script>addRow("Users","Users",1,0,"0 B",1770292655,"05/02/2026, 13:57:35");</script>
-<script>addRow("Windows","Windows",1,0,"0 B",1772720344,"05/03/2026, 16:19:04");</script>
-<script>addRow("DumpStack.log.tmp","DumpStack.log.tmp",0,12288,"12.0 kB",1773132018,"10/03/2026, 10:40:18");</script>
-<script>addRow("hiberfil.sys","hiberfil.sys",0,13434036224,"12.5 GB",1773132005,"10/03/2026, 10:40:05");</script>
-<script>addRow("pagefile.sys","pagefile.sys",0,9663676416,"9.0 GB",1773132018,"10/03/2026, 10:40:18");</script>
-<script>addRow("swapfile.sys","swapfile.sys",0,16777216,"16.0 MB",1773132018,"10/03/2026, 10:40:18");</script>
