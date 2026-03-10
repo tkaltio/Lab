@@ -8,352 +8,305 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #08080e; --card: #0e0e16; --border: #1a1a28; --text: #e0e0e8;
-  --muted: #5c5c70; --green: #10b981; --red: #ef4444; --blue: #3b82f6;
+  --bg: #f5f5f7; --card: #ffffff; --border: #e2e2e8; --text: #1a1a2e;
+  --muted: #8a8a9a; --green: #10b981; --red: #ef4444; --blue: #3b82f6;
   --amber: #f59e0b; --purple: #8b5cf6; --cyan: #06b6d4;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; padding:16px 12px; }
-.mono { font-family:'JetBrains Mono',monospace; }
-.wrap { max-width:1000px; margin:0 auto; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:0;}
+.mono{font-family:'JetBrains Mono',monospace;}
 
-/* Header */
-.dash-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-.dash-header h1 { font-size:18px; font-weight:700; letter-spacing:-0.3px; }
-.dash-sub { color:var(--muted); font-size:11px; margin-bottom:12px; }
-.refresh-bar { display:flex; gap:8px; align-items:center; }
-.refresh-btn { background:var(--blue); color:#fff; border:none; border-radius:6px; padding:7px 14px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; }
-.refresh-btn:disabled { opacity:0.4; }
-.last-update { font-size:10px; color:var(--muted); }
-.status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:4px; }
-.status-loading { background:var(--amber); animation:pulse 1s infinite; }
-.status-done { background:var(--green); }
-.status-error { background:var(--red); }
-@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+/* Nav */
+.nav{position:fixed;top:0;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.nav a{color:var(--muted);font-size:11px;text-decoration:none;}
+.nav a:hover{color:var(--text);}
+.nav-title{font-size:13px;font-weight:600;margin-left:12px;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.refresh-btn{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:6px 14px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;}
+.refresh-btn:disabled{opacity:0.4;}
+.status-text{font-size:9px;color:var(--muted);}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.status-loading{background:var(--amber);animation:pulse 1s infinite;}
+.status-done{background:var(--green);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
-/* Grid */
-.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
-.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:8px; }
-.grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px; }
-.full { grid-column:1/-1; }
+/* Layout */
+.wrap{max-width:1100px;margin:0 auto;padding:52px 16px 20px;}
+
+/* Price row */
+.price-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.price-row{grid-template-columns:1fr 1fr;}}
 
 /* Cards */
-.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
-.card-label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px; }
-.card-val { font-size:20px; font-weight:700; }
-.card-val-sm { font-size:15px; font-weight:600; }
-.card-change { font-size:11px; margin-top:1px; }
-.card-note { font-size:10px; color:var(--muted); margin-top:3px; }
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.card-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;}
+.card-val{font-size:22px;font-weight:700;}
+.card-val-sm{font-size:16px;font-weight:600;}
+.card-change{font-size:11px;margin-top:1px;}
+.card-note{font-size:10px;color:var(--muted);margin-top:3px;}
+.card-pnl{border-left:3px solid var(--blue);}
 
-/* Section headers */
-.section { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:16px 0 8px; padding-bottom:4px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px; }
-.section-icon { font-size:13px; }
+/* Section */
+.section{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+
+/* Charts row */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+@media(max-width:700px){.charts-row{grid-template-columns:1fr;}}
+.chart-card{padding-bottom:10px !important;}
+.chart-wrap{height:200px;margin-top:8px;}
 
 /* Thesis bar */
-.thesis-bar { display:flex; gap:4px; margin-bottom:8px; }
-.thesis-item { flex:1; padding:8px 10px; border-radius:6px; background:var(--card); border:1px solid var(--border); }
-.thesis-item-label { font-size:9px; color:var(--muted); text-transform:uppercase; }
-.thesis-item-val { font-size:13px; font-weight:600; margin-top:2px; }
+.thesis-bar{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:8px;}
+@media(max-width:600px){.thesis-bar{grid-template-columns:1fr 1fr;}}
+.thesis-item-label{font-size:9px;color:var(--muted);text-transform:uppercase;}
+.thesis-item-val{font-size:14px;font-weight:600;margin-top:3px;}
 
-/* News */
-.news-item { padding:10px 14px !important; border-left:3px solid var(--muted); margin-bottom:6px; }
-.news-signal { padding:2px 6px; border-radius:3px; font-size:9px; font-weight:700; }
-.news-bull { background:#10b98118; color:var(--green); border-left-color:var(--green); }
-.news-bear { background:#ef444418; color:var(--red); border-left-color:var(--red); }
-.news-neut { background:#3b82f618; color:var(--blue); border-left-color:var(--blue); }
-.news-head { font-size:12px; font-weight:600; margin-bottom:3px; }
-.news-body { font-size:11px; color:#808090; line-height:1.5; }
-.news-rel { font-size:10px; color:var(--amber); margin-top:4px; }
-.news-src { font-size:9px; color:var(--muted); margin-top:3px; }
-.news-cat { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+/* Freight row */
+.freight-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px;}
+@media(max-width:600px){.freight-row{grid-template-columns:1fr;};}
 
-/* Analyst */
-.analyst-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); }
-.analyst-row:last-child { border:none; }
+/* Two col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+@media(max-width:700px){.two-col{grid-template-columns:1fr;}}
 
 /* Peers */
-.peer-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); }
-.peer-row:last-child { border:none; }
+.peer-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
+.peer-row:last-child{border:none;}
 
-/* Skeleton */
-.skeleton { background:linear-gradient(90deg,#1a1a28 25%,#22222e 50%,#1a1a28 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:4px; height:20px; }
-@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+/* Analysts */
+.prog-wrap{height:5px;background:var(--border);border-radius:3px;position:relative;}
+.prog-fill{height:100%;border-radius:3px;position:absolute;left:0;top:0;}
 
-/* P&L card special */
-.pnl-card { border:1px solid var(--border); border-left:3px solid var(--blue); }
+/* News */
+.news-item{margin-bottom:8px;border-left:3px solid var(--muted);}
+.news-bull{border-left-color:var(--green);}
+.news-bear{border-left-color:var(--red);}
+.news-neut{border-left-color:var(--blue);}
+.news-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.news-cat{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+.news-signal{padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;}
+.news-sig-bull{background:#10b98115;color:var(--green);}
+.news-sig-bear{background:#ef444415;color:var(--red);}
+.news-sig-neut{background:#3b82f615;color:var(--blue);}
+.news-head{font-size:13px;font-weight:600;margin-bottom:3px;}
+.news-body{font-size:11px;color:var(--muted);line-height:1.5;}
+.news-rel{font-size:10px;color:var(--amber);margin-top:4px;}
+.news-src{font-size:9px;color:var(--muted);margin-top:3px;}
 
-/* Progress bar for target/stop */
-.prog-wrap { height:4px; background:#1a1a28; border-radius:2px; margin-top:6px; position:relative; }
-.prog-fill { height:100%; border-radius:2px; position:absolute; left:0; top:0; }
+/* Macro */
+.macro-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px;}
+@media(max-width:600px){.macro-row{grid-template-columns:1fr;}}
 
-.hidden { display:none !important; }
-@media(max-width:600px) {
-  .grid-4 { grid-template-columns:1fr 1fr; }
-  .grid-3 { grid-template-columns:1fr 1fr; }
-  .thesis-bar { flex-wrap:wrap; }
-}
+.footer{margin-top:20px;padding-top:10px;border-top:1px solid var(--border);font-size:9px;color:var(--muted);text-align:center;}
+.hidden{display:none!important;}
+.skeleton{background:linear-gradient(90deg,var(--border) 25%,#eee 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;height:20px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
 </head>
 <body>
 <script>
 (function(){
-  try {
-    const raw = localStorage.getItem("lab_session");
-    if(!raw){window.location.href="/";return;}
-    const s = JSON.parse(atob(raw));
-    if(Date.now()-s.ts > 7*24*60*60*1000){localStorage.removeItem("lab_session");window.location.href="/";return;}
-    if(s.role!=="admin" && s.app!=="fro-dashboard"){window.location.href="/";return;}
-  }catch{window.location.href="/";}
+  try{const raw=localStorage.getItem("lab_session");if(!raw){window.location.href="/";return;}const s=JSON.parse(atob(raw));if(Date.now()-s.ts>7*24*60*60*1000){localStorage.removeItem("lab_session");window.location.href="/";return;}if(s.role!=="admin"&&s.app!=="fro-dashboard"){window.location.href="/";return;}}catch{window.location.href="/";}
 })();
 </script>
-<div style="position:fixed;top:0;left:0;right:0;background:#0e0e16;border-bottom:1px solid #1a1a28;padding:6px 16px;z-index:999;display:flex;justify-content:space-between;align-items:center">
-  <a href="/" style="color:#5c5c70;font-size:11px;text-decoration:none;font-family:DM Sans,sans-serif">2190 Back to Lab</a>
-  <span style="color:#3a3a4a;font-size:10px;font-family:DM Sans,sans-serif">FRO Intelligence</span>
+
+<div class="nav">
+  <div style="display:flex;align-items:center">
+    <a href="/">← Lab</a>
+    <span class="nav-title">FRO Intelligence Dashboard</span>
+  </div>
+  <div class="nav-right">
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-text" id="statusText">Ready</span>
+    <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
+  </div>
 </div>
-<div style="height:32px"></div>
+
 <div class="wrap">
-  <!-- Header -->
-  <div class="dash-header">
-    <h1>FRO Intelligence Dashboard</h1>
-    <div class="refresh-bar">
-      <span id="statusDot" class="status-dot"></span>
-      <span id="statusText" class="last-update">Ready</span>
-      <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Frontline plc (FRO.OL / NYSE:FRO) · LONG 330 NOK · Target 466 · Stop 277 · Illustrative</div>
+
+  <!-- Price row -->
+  <div class="price-row" id="priceRow"></div>
+
+  <!-- Share price charts -->
+  <div class="section"><span>📈</span> Share Price — 30 Days</div>
+  <div class="charts-row">
+    <div class="card chart-card">
+      <div class="card-label">FRO.OL (Oslo, NOK)</div>
+      <div class="chart-wrap"><canvas id="chartFRO_OL"></canvas></div>
+    </div>
+    <div class="card chart-card">
+      <div class="card-label">FRO (NYSE, USD)</div>
+      <div class="chart-wrap"><canvas id="chartFRO_US"></canvas></div>
     </div>
   </div>
-  <div class="dash-sub">Frontline plc (NYSE: FRO / OSE: FRO) · LONG 330 NOK · Target 466 NOK · Stop 277 NOK · Illustrative Portfolio</div>
 
-  <!-- P&L + Prices row -->
-  <div id="priceSection" class="grid-4"></div>
+  <!-- Brent chart -->
+  <div class="section"><span>🛢️</span> Brent Crude — 30 Days</div>
+  <div class="card chart-card" style="margin-bottom:8px;">
+    <div class="card-label">Brent Crude (USD/bbl)</div>
+    <div class="chart-wrap"><canvas id="chartBrent"></canvas></div>
+  </div>
 
   <!-- Thesis drivers -->
-  <div class="section"><span class="section-icon">⚡</span> Thesis Drivers</div>
-  <div id="thesisSection" class="thesis-bar"></div>
+  <div class="section"><span>⚡</span> Thesis Drivers</div>
+  <div class="thesis-bar" id="thesisSection"></div>
 
-  <!-- Freight rates -->
-  <div class="section"><span class="section-icon">🚢</span> Freight & Shipping</div>
-  <div id="freightSection" class="grid-3"></div>
-  <div class="grid-2" style="margin-top:8px">
-    <div class="card" style="padding-bottom:8px">
-      <div class="card-label">VLCC TD3C (AG→China) — 30 Days</div>
-      <div style="height:140px;margin-top:6px"><canvas id="chartTD3C"></canvas></div>
-    </div>
-    <div class="card" style="padding-bottom:8px">
-      <div class="card-label">VLCC 1yr Time Charter — 30 Days</div>
-      <div style="height:140px;margin-top:6px"><canvas id="chartTC1Y"></canvas></div>
-    </div>
-  </div>
+  <!-- Freight -->
+  <div class="section"><span>🚢</span> Freight & Shipping</div>
+  <div class="freight-row" id="freightSection"></div>
 
-  <!-- Conflict tracker -->
-  <div class="section"><span class="section-icon">🔴</span> Conflict Status</div>
-  <div id="conflictSection" class="grid-2"></div>
+  <!-- Iran war news -->
+  <div class="section"><span>🔴</span> Iran War — Latest</div>
+  <div id="iranNewsSection"></div>
+
+  <!-- Conflict status -->
+  <div class="section"><span>🌍</span> Conflict Status</div>
+  <div class="two-col" id="conflictSection"></div>
 
   <!-- Peers -->
-  <div class="section"><span class="section-icon">📊</span> Peer Comparison</div>
-  <div id="peerSection" class="card"></div>
+  <div class="section"><span>📊</span> Peer Comparison</div>
+  <div class="card" id="peerSection"></div>
 
   <!-- Analysts -->
-  <div class="section"><span class="section-icon">🎯</span> Analyst Ratings</div>
-  <div id="analystSection" class="card"></div>
+  <div class="section"><span>🎯</span> Analyst Ratings</div>
+  <div class="card" id="analystSection"></div>
 
   <!-- Macro -->
-  <div class="section"><span class="section-icon">🌐</span> Macro Risk Monitor</div>
-  <div id="macroSection" class="grid-3"></div>
+  <div class="section"><span>🌐</span> Macro Risk Monitor</div>
+  <div class="macro-row" id="macroSection"></div>
 
-  <!-- News -->
-  <div class="section"><span class="section-icon">📰</span> Intelligence Feed</div>
-  <div id="newsSection"></div>
-
-  <div style="margin-top:16px;padding-top:10px;border-top:1px solid var(--border);font-size:9px;color:var(--muted)">
-    Illustrative portfolio · Data via Claude API web search · Not real-time · Verify on Bloomberg before acting
-  </div>
+  <div class="footer">Illustrative only · Data via Claude API web search · Not real-time · Verify on Bloomberg before acting</div>
 </div>
 
 <script>
-const ENTRY_NOK = 330;
-const TARGET_NOK = 466;
-const STOP_NOK = 277;
-const ENTRY_EUR = 28.88; // approx at NOK/EUR ~0.0875
-const CACHE_KEY = "fro-dashboard-v5";
+const ENTRY_NOK=330, TARGET_NOK=466, STOP_NOK=277;
+const CACHE_KEY="fro-dash-v7";
+let cache={};
+const $=id=>document.getElementById(id);
 
-let cache = {};
-
-async function loadCache() {
-  try { const r = await Promise.resolve(localStorage.getItem(CACHE_KEY) ? {value: localStorage.getItem(CACHE_KEY)} : null); if(r?.value) cache = JSON.parse(r.value); } catch{}
-  if(cache.prices) renderPrices(cache.prices);
-  if(cache.thesis) renderThesis(cache.thesis);
-  if(cache.freight) renderFreight(cache.freight);
-  if(cache.conflict) renderConflict(cache.conflict);
-  if(cache.peers) renderPeers(cache.peers);
-  if(cache.analysts) renderAnalysts(cache.analysts);
-  if(cache.macro) renderMacro(cache.macro);
-  if(cache.news) renderNews(cache.news);
-  if(cache.rateHistory) renderRateCharts(cache.rateHistory);
-  if(cache.lastUpdate) {
-    $("statusDot").className = "status-dot status-done";
-    $("statusText").textContent = "Last: " + new Date(cache.lastUpdate).toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-  }
+async function loadCache(){
+  try{const r=localStorage.getItem(CACHE_KEY);if(r)cache=JSON.parse(r);}catch{}
+  if(cache.prices)renderPrices(cache.prices);
+  if(cache.thesis)renderThesis(cache.thesis);
+  if(cache.freight)renderFreight(cache.freight);
+  if(cache.conflict)renderConflict(cache.conflict);
+  if(cache.peers)renderPeers(cache.peers);
+  if(cache.analysts)renderAnalysts(cache.analysts);
+  if(cache.macro)renderMacro(cache.macro);
+  if(cache.iranNews)renderIranNews(cache.iranNews);
+  if(cache.froOlHistory)renderLineChart("chartFRO_OL",cache.froOlHistory,"#3b82f6","NOK");
+  if(cache.froUsHistory)renderLineChart("chartFRO_US",cache.froUsHistory,"#8b5cf6","USD");
+  if(cache.brentHistory)renderLineChart("chartBrent",cache.brentHistory,"#f59e0b","USD");
+  if(cache.lastUpdate){$("statusDot").className="status-dot status-done";$("statusText").textContent="Last: "+new Date(cache.lastUpdate).toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
 }
-async function saveCache() { try { await Promise.resolve(localStorage.setItem(CACHE_KEY, JSON.stringify(cache))); } catch{} }
-const $ = id => document.getElementById(id);
+function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify(cache));}catch{}}
 
-function setStatus(s, msg) {
-  $("statusDot").className = "status-dot status-" + s;
-  $("statusText").textContent = msg;
+async function apiCall(prompt){
+  const res=await fetch("/api/claude-proxy",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:2000,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:prompt}]})});
+  const data=await res.json();if(data.error)throw new Error(data.error.message);
+  const text=(data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+  const m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error("No JSON");return JSON.parse(m[0]);
 }
 
-function skel(id) { $(id).innerHTML = '<div class="skeleton" style="height:60px;margin-bottom:6px"></div>'.repeat(2); }
-
-async function apiCall(prompt) {
-  const res = await fetch("/api/claude-proxy", {
-    method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({
-      model:"claude-sonnet-4-20250514", max_tokens:1500,
-      tools:[{type:"web_search_20250305",name:"web_search"}],
-      messages:[{role:"user",content:prompt}]
-    })
-  });
-  const data = await res.json();
-  if(data.error) throw new Error(data.error.message);
-  const text = (data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
-  const m = text.match(/\{[\s\S]*\}/);
-  if(!m) throw new Error("No JSON");
-  return JSON.parse(m[0]);
+async function refreshAll(){
+  $("refreshBtn").disabled=true;$("statusDot").className="status-dot status-loading";$("statusText").textContent="Scanning...";
+  const results=await Promise.allSettled([fetchPrices(),fetchThesisAndFreight(),fetchConflictAndMacro(),fetchPeersAndAnalysts(),fetchIranNews(),fetchPriceHistories()]);
+  const failed=results.filter(r=>r.status==="rejected").length;
+  cache.lastUpdate=new Date().toISOString();saveCache();
+  $("statusDot").className="status-dot status-done";
+  $("statusText").textContent=failed>0?`Done (${failed} failed)`:"Updated "+new Date().toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  $("refreshBtn").disabled=false;
 }
 
-async function refreshAll() {
-  $("refreshBtn").disabled = true;
-  setStatus("loading", "Scanning...");
+// === FETCHERS ===
 
-  const tasks = [
-    fetchPrices(),
-    fetchThesisAndFreight(),
-    fetchConflictAndMacro(),
-    fetchPeersAndAnalysts(),
-    fetchNews(),
-    fetchRateHistory()
-  ];
-
-  const results = await Promise.allSettled(tasks);
-  const failed = results.filter(r=>r.status==="rejected").length;
-
-  cache.lastUpdate = new Date().toISOString();
-  await saveCache();
-
-  setStatus(failed>2?"error":"done", failed>0 ? `Done (${failed} failed)` : "Updated " + new Date().toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}));
-  $("refreshBtn").disabled = false;
+async function fetchPrices(){
+  const d=await apiCall(`Search for LATEST prices of Frontline FRO on Oslo (NOK) and NYSE (USD). Also get USDNOK, Brent crude, WTI, S&P 500, VIX, EUR/USD. Return ONLY JSON:
+{"fro_nok":number,"fro_nok_change_pct":number,"fro_usd":number,"fro_usd_change_pct":number,"usdnok":number,"brent_usd":number,"brent_change_pct":number,"wti_usd":number,"eurusd":number,"sp500":number,"sp500_change_pct":number,"vix":number,"nyse_open":true or false,"oslo_open":true or false,"as_of":"date"}`);
+  cache.prices=d;renderPrices(d);
 }
 
-// === FETCH FUNCTIONS ===
-
-async function fetchPrices() {
-  const d = await apiCall(`Search for the LATEST prices of Frontline (FRO) on BOTH Oslo (NOK) and NYSE (USD). Also get USDNOK exchange rate and oil prices. Return ONLY JSON:
-{"fro_nok":number,"fro_nok_change_pct":number,"fro_usd":number,"fro_usd_change_pct":number,"usdnok":number,"brent_usd":number,"brent_change_pct":number,"wti_usd":number,"eurusd":number,"sp500":number,"sp500_change_pct":number,"vix":number,"nyse_open":true or false,"oslo_open":true or false,"as_of":"date string"}`);
-  cache.prices = d;
-  renderPrices(d);
+async function fetchThesisAndFreight(){
+  const d=await apiCall(`Search for LATEST: VLCC tanker day rates, Strait of Hormuz vessel traffic, shipping insurance status. Return ONLY JSON:
+{"vlcc_td3c_rate":number or null,"vlcc_1yr_tc_rate":number or null,"suezmax_rate":number or null,"aframax_rate":number or null,"bdti_index":number or null,"hormuz_daily_transits":number or null,"vessels_stranded":number or null,"hormuz_days_closed":number,"insurance_status":"string","rate_source":"source","as_of":"date"}`);
+  cache.thesis={hormuz_transits:d.hormuz_daily_transits,vessels_stranded:d.vessels_stranded,days_closed:d.hormuz_days_closed,insurance:d.insurance_status};
+  cache.freight={td3c:d.vlcc_td3c_rate,tc_1yr:d.vlcc_1yr_tc_rate,suezmax:d.suezmax_rate,aframax:d.aframax_rate,bdti:d.bdti_index,source:d.rate_source};
+  renderThesis(cache.thesis);renderFreight(cache.freight);
 }
 
-async function fetchThesisAndFreight() {
-  const d = await apiCall(`Search for the LATEST on: VLCC tanker day rates, Strait of Hormuz vessel traffic, shipping insurance status. Return ONLY JSON:
-{"vlcc_td3c_rate":number or null,"vlcc_1yr_tc_rate":number or null,"suezmax_rate":number or null,"aframax_rate":number or null,"bdti_index":number or null,"hormuz_daily_transits":number or null,"vessels_stranded":number or null,"hormuz_days_closed":number,"insurance_status":"string describing current war risk insurance state","rate_source":"source name","as_of":"date"}`);
-  cache.thesis = {hormuz_transits:d.hormuz_daily_transits,vessels_stranded:d.vessels_stranded,days_closed:d.hormuz_days_closed,insurance:d.insurance_status};
-  cache.freight = {td3c:d.vlcc_td3c_rate,tc_1yr:d.vlcc_1yr_tc_rate,suezmax:d.suezmax_rate,aframax:d.aframax_rate,bdti:d.bdti_index,source:d.rate_source};
-  renderThesis(cache.thesis);
-  renderFreight(cache.freight);
+async function fetchConflictAndMacro(){
+  const d=await apiCall(`Search for LATEST Iran war status and US macro data. Return ONLY JSON:
+{"war_day":number,"ceasefire_status":"REJECTED/POSSIBLE/NEGOTIATIONS/AGREED","latest_ceasefire_signal":"one sentence","iran_leadership":"who is in charge","escalation_direction":"ESCALATING/STABLE/DE-ESCALATING","red_sea_status":"OPEN/DISRUPTED/CLOSED","countries_involved":number,"us_nfp_latest":number,"us_unemployment":number,"us_ism_mfg":number or null,"next_fomc_date":"date","spr_release":"YES/NO/DISCUSSED","oil_above_100":true or false}`);
+  cache.conflict={day:d.war_day,ceasefire:d.ceasefire_status,ceasefire_signal:d.latest_ceasefire_signal,leadership:d.iran_leadership,escalation:d.escalation_direction,red_sea:d.red_sea_status,countries:d.countries_involved};
+  cache.macro={nfp:d.us_nfp_latest,unemp:d.us_unemployment,ism:d.us_ism_mfg,fomc:d.next_fomc_date,spr:d.spr_release,oil100:d.oil_above_100};
+  renderConflict(cache.conflict);renderMacro(cache.macro);
 }
 
-async function fetchConflictAndMacro() {
-  const d = await apiCall(`Search for the LATEST Iran war status and US macro data. Return ONLY JSON:
-{"war_day":number,"ceasefire_status":"REJECTED/POSSIBLE/NEGOTIATIONS/AGREED","latest_ceasefire_signal":"one sentence","iran_leadership":"who is in charge now","escalation_direction":"ESCALATING/STABLE/DE-ESCALATING","red_sea_status":"OPEN/DISRUPTED/CLOSED","countries_involved":number,"us_nfp_latest":number,"us_unemployment":number,"us_ism_mfg":number or null,"next_fomc_date":"date","spr_release":"YES/NO/DISCUSSED","oil_above_100":true or false,"conflict_source":"source"}`);
-  cache.conflict = {day:d.war_day,ceasefire:d.ceasefire_status,ceasefire_signal:d.latest_ceasefire_signal,leadership:d.iran_leadership,escalation:d.escalation_direction,red_sea:d.red_sea_status,countries:d.countries_involved};
-  cache.macro = {nfp:d.us_nfp_latest,unemp:d.us_unemployment,ism:d.us_ism_mfg,fomc:d.next_fomc_date,spr:d.spr_release,oil100:d.oil_above_100};
-  renderConflict(cache.conflict);
-  renderMacro(cache.macro);
+async function fetchPeersAndAnalysts(){
+  const d=await apiCall(`Search for LATEST stock prices and FRO analyst info. Return ONLY JSON:
+{"peers":[{"ticker":"DHT","price_usd":number,"change_pct":number},{"ticker":"INSW","price_usd":number,"change_pct":number},{"ticker":"STNG","price_usd":number,"change_pct":number}],"fro_analysts":{"buy":number,"hold":number,"sell":number,"avg_pt_usd":number,"high_pt_usd":number,"low_pt_usd":number,"latest_action":"most recent upgrade/downgrade"}}`);
+  cache.peers=d.peers;cache.analysts=d.fro_analysts;renderPeers(d.peers);renderAnalysts(d.fro_analysts);
 }
 
-async function fetchPeersAndAnalysts() {
-  const d = await apiCall(`Search for LATEST stock prices and analyst info. Return ONLY JSON:
-{"peers":[{"ticker":"DHT","price_usd":number,"change_pct":number},{"ticker":"INSW","price_usd":number,"change_pct":number},{"ticker":"STNG","price_usd":number,"change_pct":number}],"fro_analysts":{"buy":number,"hold":number,"sell":number,"avg_pt_usd":number,"high_pt_usd":number,"low_pt_usd":number,"latest_action":"string describing most recent upgrade/downgrade with analyst name and date"}}`);
-  cache.peers = d.peers;
-  cache.analysts = d.fro_analysts;
-  renderPeers(d.peers);
-  renderAnalysts(d.fro_analysts);
+async function fetchIranNews(){
+  const d=await apiCall(`Search for the LATEST news from the Iran war — focus on developments from the last 24-48 hours. Check Iranian state media (Tehran Times, IRNA, Fars), Al Jazeera, Times of Israel, CNBC, NPR, CNN. Include military developments, Hormuz shipping updates, diplomatic signals, oil impact. Return ONLY JSON:
+{"items":[{"signal":"BULLISH|BEARISH|NEUTRAL","headline":"short","detail":"2-3 sentences","relevance":"why it matters for FRO/tanker position","source":"source name","time":"when"}]}
+Return 6-8 items ranked by impact on the FRO investment thesis.`);
+  cache.iranNews=d.items||[];renderIranNews(cache.iranNews);
 }
 
-async function fetchNews() {
-  const d = await apiCall(`Search for the LATEST news relevant to a LONG position in Frontline (FRO) tanker stock. Cover: Hormuz shipping, Iran war, VLCC rates, oil prices, FRO company news. Return ONLY JSON:
-{"items":[{"cat":"HORMUZ|IRAN|FREIGHT|OIL|FRO|MACRO","signal":"BULLISH|BEARISH|NEUTRAL","headline":"short","detail":"2-3 sentences","relevance":"why it matters for FRO position","source":"name"}]}
-Return 6-8 items ranked by importance.`);
-  cache.news = d.items || [];
-  renderNews(cache.news);
-}
-
-async function fetchRateHistory() {
-  const d = await apiCall(`Search for VLCC tanker rate history over the past 30 days (approximately early February 2026 to early March 2026). I need the TD3C (AG to China VLCC spot rate TCE equivalent in USD/day) and the 1-year VLCC time charter rate. Search multiple sources: Baltic Exchange reports, Clarksons, Seatrade Maritime, Hellenic Shipping News, Fearnleys, broker reports. Collect as many weekly or daily data points as possible.
+async function fetchPriceHistories(){
+  const d=await apiCall(`Search for Frontline plc (FRO) stock price history for the last 30 days on BOTH Oslo (NOK) and NYSE (USD). Also search for Brent crude oil price history for the last 30 days. Collect as many daily data points as possible from financial data sources, news reports, and market summaries.
 
 Return ONLY JSON:
 {
-  "td3c_history": [
-    {"date":"YYYY-MM-DD","rate":number}
-  ],
-  "tc_1yr_history": [
-    {"date":"YYYY-MM-DD","rate":number}
-  ],
-  "notes":"brief note on data quality/gaps"
+  "fro_ol_history":[{"date":"YYYY-MM-DD","price":number}],
+  "fro_us_history":[{"date":"YYYY-MM-DD","price":number}],
+  "brent_history":[{"date":"YYYY-MM-DD","price":number}]
 }
-Include at least 6-8 data points per series spanning the full 30-day period. If exact daily data is unavailable, use weekly assessments. Dates must be chronological.`);
-  cache.rateHistory = d;
-  renderRateCharts(d);
+Include at least 8-12 data points per series, chronologically ordered. Use closing prices.`);
+  cache.froOlHistory=d.fro_ol_history||[];
+  cache.froUsHistory=d.fro_us_history||[];
+  cache.brentHistory=d.brent_history||[];
+  renderLineChart("chartFRO_OL",cache.froOlHistory,"#3b82f6","NOK");
+  renderLineChart("chartFRO_US",cache.froUsHistory,"#8b5cf6","USD");
+  renderLineChart("chartBrent",cache.brentHistory,"#f59e0b","USD");
 }
 
-// === RENDER FUNCTIONS ===
+// === RENDERERS ===
 
-function renderPrices(d) {
-  if(!d) return;
-  // Primary price is NOK from Oslo
-  let froNok = d.fro_nok || null;
-  // If NYSE is open and we have USD price + USDNOK, compute a live NOK-equivalent
-  const usdnok = d.usdnok || 11.3;
-  const froUsdInNok = d.fro_usd ? Math.round(d.fro_usd * usdnok * 100) / 100 : null;
-  // Use the most recent available: if NYSE is open, show both
-  const displayNok = froNok || froUsdInNok;
-  const pnlPct = displayNok ? ((displayNok - ENTRY_NOK)/ENTRY_NOK*100) : null;
-  const pnlNok = displayNok ? (displayNok - ENTRY_NOK) : null;
-  const progPct = displayNok ? Math.max(0,Math.min(100,((displayNok-STOP_NOK)/(TARGET_NOK-STOP_NOK))*100)) : 50;
+function renderPrices(d){
+  if(!d)return;
+  const froNok=d.fro_nok||null;
+  const usdnok=d.usdnok||11.3;
+  const froUsdInNok=d.fro_usd?Math.round(d.fro_usd*usdnok*100)/100:null;
+  const displayNok=froNok||froUsdInNok;
+  const pnlPct=displayNok?((displayNok-ENTRY_NOK)/ENTRY_NOK*100):null;
+  const pnlNok=displayNok?(displayNok-ENTRY_NOK):null;
+  const progPct=displayNok?Math.max(0,Math.min(100,((displayNok-STOP_NOK)/(TARGET_NOK-STOP_NOK))*100)):50;
 
-  // Build FRO price card content
-  let froCardLines = '';
-  if (froNok) {
-    froCardLines += `<div class="card-val mono">${froNok.toFixed(2)} <span style="font-size:12px;color:var(--muted)">NOK</span></div>`;
-    froCardLines += `<div class="card-change mono" style="color:${(d.fro_nok_change_pct||0)>=0?'var(--green)':'var(--red)'}">${d.fro_nok_change_pct!=null?(d.fro_nok_change_pct>=0?'+':'')+d.fro_nok_change_pct.toFixed(2)+'%':''}${d.oslo_open?' · OSE live':' · OSE close'}</div>`;
-  }
-  if (d.fro_usd) {
-    froCardLines += `<div style="margin-top:${froNok?'6':'0'}px">`;
-    if (!froNok) {
-      // Oslo closed, show USD→NOK as primary
-      froCardLines += `<div class="card-val mono">${froUsdInNok?froUsdInNok.toFixed(2):''} <span style="font-size:12px;color:var(--muted)">NOK</span></div>`;
-      froCardLines += `<div class="card-change mono" style="color:${(d.fro_usd_change_pct||0)>=0?'var(--green)':'var(--red)'}">from NYSE $${d.fro_usd.toFixed(2)}${d.nyse_open?' · live':' · close'}</div>`;
-    } else {
-      // Oslo is available, show NYSE as secondary
-      froCardLines += `<div class="card-note">NYSE: $${d.fro_usd.toFixed(2)} (≈${froUsdInNok?froUsdInNok.toFixed(1):''} NOK)${d.nyse_open?' · live':''}</div>`;
-    }
-    froCardLines += `</div>`;
-  }
-  if (!froNok && !d.fro_usd) {
-    froCardLines = `<div class="card-val mono">—</div>`;
-  }
+  let froCard='';
+  if(froNok){
+    froCard=`<div class="card-val mono">${froNok.toFixed(1)} <span style="font-size:11px;color:var(--muted)">NOK</span></div>
+    <div class="card-change mono" style="color:${(d.fro_nok_change_pct||0)>=0?'var(--green)':'var(--red)'}">${d.fro_nok_change_pct!=null?(d.fro_nok_change_pct>=0?'+':'')+d.fro_nok_change_pct.toFixed(2)+'%':''} OSE</div>`;
+    if(d.fro_usd) froCard+=`<div class="card-note">NYSE: $${d.fro_usd.toFixed(2)} (≈${froUsdInNok?.toFixed(0)} NOK)</div>`;
+  } else if(d.fro_usd){
+    froCard=`<div class="card-val mono">${froUsdInNok?.toFixed(1)} <span style="font-size:11px;color:var(--muted)">NOK</span></div>
+    <div class="card-change mono" style="color:${(d.fro_usd_change_pct||0)>=0?'var(--green)':'var(--red)'}">from NYSE $${d.fro_usd.toFixed(2)}</div>`;
+  } else { froCard='<div class="card-val mono">—</div>'; }
 
-  $("priceSection").innerHTML = `
-    <div class="card pnl-card">
+  $("priceRow").innerHTML=`
+    <div class="card card-pnl">
       <div class="card-label">Portfolio P&L</div>
-      <div class="card-val mono" style="color:${pnlPct>=0?"var(--green)":"var(--red)"}">${pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%':'—'}</div>
-      <div class="card-change mono" style="color:${pnlNok>=0?"var(--green)":"var(--red)"}">${pnlNok!=null?(pnlNok>=0?'+':'')+pnlNok.toFixed(1)+' NOK/share':'—'}</div>
-      <div class="prog-wrap"><div class="prog-fill" style="width:${progPct}%;background:${progPct>60?'var(--green)':progPct<30?'var(--red)':'var(--amber)'}"></div></div>
-      <div class="card-note">Stop ${STOP_NOK} → Target ${TARGET_NOK} NOK</div>
+      <div class="card-val mono" style="color:${pnlPct>=0?'var(--green)':'var(--red)'}">${pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%':'—'}</div>
+      <div class="card-change mono" style="color:${pnlNok>=0?'var(--green)':'var(--red)'}">${pnlNok!=null?(pnlNok>=0?'+':'')+pnlNok.toFixed(1)+' NOK':'—'}</div>
+      <div class="prog-wrap" style="margin-top:6px"><div class="prog-fill" style="width:${progPct}%;background:${progPct>60?'var(--green)':progPct<30?'var(--red)':'var(--amber)'}"></div></div>
+      <div class="card-note">Stop ${STOP_NOK} → Target ${TARGET_NOK}</div>
     </div>
     <div class="card">
       <div class="card-label">FRO Share Price</div>
-      ${froCardLines}
+      ${froCard}
     </div>
     <div class="card">
       <div class="card-label">Brent Crude</div>
@@ -364,146 +317,93 @@ function renderPrices(d) {
     <div class="card">
       <div class="card-label">FX & Macro</div>
       <div class="card-val-sm mono">USD/NOK ${usdnok}</div>
-      <div class="card-val-sm mono" style="margin-top:4px">VIX ${d.vix||'—'}</div>
+      <div class="card-val-sm mono" style="margin-top:3px">VIX ${d.vix||'—'}</div>
       <div class="card-note">S&P ${d.sp500||'—'} (${d.sp500_change_pct!=null?(d.sp500_change_pct>=0?'+':'')+d.sp500_change_pct.toFixed(2)+'%':'—'}) · EUR/USD ${d.eurusd||'—'}</div>
     </div>`;
 }
 
-function renderThesis(d) {
-  if(!d) return;
-  const ceasefireColor = d.ceasefire==="REJECTED"?"var(--green)":d.ceasefire==="AGREED"?"var(--red)":"var(--amber)";
-  $("thesisSection").innerHTML = `
-    <div class="thesis-item"><div class="thesis-item-label">Hormuz Closed</div><div class="thesis-item-val mono" style="color:var(--red)">Day ${d.days_closed||'?'}</div></div>
-    <div class="thesis-item"><div class="thesis-item-label">Daily Transits</div><div class="thesis-item-val mono" style="color:${(d.hormuz_transits||0)<10?'var(--green)':'var(--amber)'}">${d.hormuz_transits!=null?d.hormuz_transits:'—'}</div></div>
-    <div class="thesis-item"><div class="thesis-item-label">Vessels Stranded</div><div class="thesis-item-val mono">${d.vessels_stranded||'—'}</div></div>
-    <div class="thesis-item"><div class="thesis-item-label">Insurance</div><div class="thesis-item-val" style="font-size:10px;color:var(--amber)">${d.insurance||'—'}</div></div>`;
+function renderLineChart(canvasId,data,color,unit){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas||!data||!data.length)return;
+  const ctx=canvas.getContext("2d");
+  const existing=Chart.getChart(canvasId);if(existing)existing.destroy();
+  const gradient=ctx.createLinearGradient(0,0,0,200);
+  gradient.addColorStop(0,color+"30");gradient.addColorStop(1,color+"00");
+  const labels=data.map(p=>{const d=p.date.split("-");return d[2]+"."+d[1];});
+  const values=data.map(p=>p.price);
+  const minV=Math.min(...values);const maxV=Math.max(...values);
+  new Chart(ctx,{type:"line",data:{labels,datasets:[{data:values,borderColor:color,backgroundColor:gradient,fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:"#fff",pointBorderColor:color,pointBorderWidth:2,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#1a1a2e",borderColor:"#e2e2e8",borderWidth:1,titleFont:{family:"'JetBrains Mono',monospace",size:10},bodyFont:{family:"'JetBrains Mono',monospace",size:11},callbacks:{label:c=>unit==="NOK"?c.parsed.y.toFixed(1)+" NOK":"$"+c.parsed.y.toFixed(2)}}},scales:{x:{grid:{display:false},ticks:{color:"#8a8a9a",font:{size:9,family:"'JetBrains Mono',monospace"},maxRotation:0}},y:{grid:{color:"#e2e2e810"},ticks:{color:"#8a8a9a",font:{size:9,family:"'JetBrains Mono',monospace"},callback:v=>unit==="NOK"?v.toFixed(0):"$"+v.toFixed(0)},min:minV*0.9,max:maxV*1.05}}}});
 }
 
-function renderFreight(d) {
-  if(!d) return;
-  $("freightSection").innerHTML = `
+function renderThesis(d){
+  if(!d)return;
+  $("thesisSection").innerHTML=`
+    <div class="card"><div class="thesis-item-label">Hormuz Closed</div><div class="thesis-item-val mono" style="color:var(--red)">Day ${d.days_closed||'?'}</div></div>
+    <div class="card"><div class="thesis-item-label">Daily Transits</div><div class="thesis-item-val mono" style="color:${(d.hormuz_transits||0)<10?'var(--green)':'var(--amber)'}">${d.hormuz_transits!=null?d.hormuz_transits:'—'}</div></div>
+    <div class="card"><div class="thesis-item-label">Vessels Stranded</div><div class="thesis-item-val mono">${d.vessels_stranded||'—'}</div></div>
+    <div class="card"><div class="thesis-item-label">Insurance</div><div class="thesis-item-val" style="font-size:10px;color:var(--amber)">${d.insurance||'—'}</div></div>`;
+}
+
+function renderFreight(d){
+  if(!d)return;
+  $("freightSection").innerHTML=`
     <div class="card"><div class="card-label">VLCC TD3C (AG→China)</div><div class="card-val-sm mono" style="color:var(--green)">${d.td3c?'$'+Number(d.td3c).toLocaleString()+'/day':'—'}</div><div class="card-note">${d.source||''}</div></div>
     <div class="card"><div class="card-label">VLCC 1yr TC Rate</div><div class="card-val-sm mono">${d.tc_1yr?'$'+Number(d.tc_1yr).toLocaleString()+'/day':'—'}</div></div>
     <div class="card"><div class="card-label">BDTI Index</div><div class="card-val-sm mono">${d.bdti||'—'}</div><div class="card-note">Suez: ${d.suezmax?'$'+Number(d.suezmax).toLocaleString():'—'} · Afra: ${d.aframax?'$'+Number(d.aframax).toLocaleString():'—'}</div></div>`;
 }
 
-function renderRateCharts(d) {
-  if (!d) return;
-  renderOneChart("chartTD3C", d.td3c_history || [], "#10b981", "TD3C");
-  renderOneChart("chartTC1Y", d.tc_1yr_history || [], "#3b82f6", "1yr TC");
+function renderIranNews(items){
+  if(!items||!items.length){$("iranNewsSection").innerHTML='<div class="card" style="text-align:center;padding:24px;color:var(--muted);font-size:12px">No news yet. Hit Refresh All.</div>';return;}
+  let h='';
+  items.forEach(n=>{
+    const cls=n.signal==="BULLISH"?"news-bull":n.signal==="BEARISH"?"news-bear":"news-neut";
+    const sigCls=n.signal==="BULLISH"?"news-sig-bull":n.signal==="BEARISH"?"news-sig-bear":"news-sig-neut";
+    h+=`<div class="card news-item ${cls}">
+      <div class="news-top"><span class="news-cat">${n.cat||'IRAN'}</span><div style="display:flex;gap:6px;align-items:center"><span style="font-size:9px;color:var(--muted)">${n.time||''}</span><span class="news-signal ${sigCls} mono">${n.signal}</span></div></div>
+      <div class="news-head">${n.headline||''}</div>
+      <div class="news-body">${n.detail||''}</div>
+      ${n.relevance?`<div class="news-rel">→ ${n.relevance}</div>`:''}
+      ${n.source?`<div class="news-src">${n.source}</div>`:''}
+    </div>`;
+  });
+  $("iranNewsSection").innerHTML=h;
 }
 
-function renderOneChart(canvasId, data, color, label) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas || !data.length) return;
-  const ctx = canvas.getContext("2d");
-
-  const existing = Chart.getChart(canvasId);
-  if (existing) existing.destroy();
-
-  const gradient = ctx.createLinearGradient(0, 0, 0, 140);
-  gradient.addColorStop(0, color + "40");
-  gradient.addColorStop(1, color + "00");
-
-  const labels = data.map(p => {
-    const d = p.date.split("-");
-    return d[2] + "." + d[1];
-  });
-  const values = data.map(p => p.rate);
-  const minVal = Math.min(...values);
-
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        data: values,
-        borderColor: color,
-        backgroundColor: gradient,
-        fill: true,
-        tension: 0.3,
-        pointRadius: 3,
-        pointBackgroundColor: "#0e0e16",
-        pointBorderColor: color,
-        pointBorderWidth: 2,
-        borderWidth: 2,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "#1a1a28",
-          borderColor: "#2a2a3a",
-          borderWidth: 1,
-          titleFont: { family: "'JetBrains Mono', monospace", size: 10 },
-          bodyFont: { family: "'JetBrains Mono', monospace", size: 11 },
-          callbacks: {
-            label: (ctx) => "$" + Number(ctx.parsed.y).toLocaleString() + "/day"
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: "#5c5c70", font: { size: 9, family: "'JetBrains Mono', monospace" }, maxRotation: 0 }
-        },
-        y: {
-          grid: { color: "#1a1a2810" },
-          ticks: {
-            color: "#5c5c70",
-            font: { size: 9, family: "'JetBrains Mono', monospace" },
-            callback: v => "$" + (v >= 1000 ? (v/1000).toFixed(0) + "k" : v)
-          },
-          min: Math.max(0, minVal * 0.7),
-        }
-      }
-    }
-  });
-}
-
-function renderConflict(d) {
-  if(!d) return;
-  const escColor = d.escalation==="ESCALATING"?"var(--red)":d.escalation==="DE-ESCALATING"?"var(--green)":"var(--amber)";
-  const cfColor = d.ceasefire==="REJECTED"?"var(--green)":d.ceasefire==="AGREED"?"var(--red)":"var(--amber)";
-  $("conflictSection").innerHTML = `
+function renderConflict(d){
+  if(!d)return;
+  const escColor=d.escalation==="ESCALATING"?"var(--red)":d.escalation==="DE-ESCALATING"?"var(--green)":"var(--amber)";
+  const cfColor=d.ceasefire==="REJECTED"?"var(--green)":d.ceasefire==="AGREED"?"var(--red)":"var(--amber)";
+  $("conflictSection").innerHTML=`
     <div class="card">
       <div class="card-label">Iran War — Day ${d.day||'?'}</div>
-      <div style="margin-top:6px"><span style="font-size:10px;color:var(--muted)">Escalation:</span> <span class="mono" style="font-size:12px;font-weight:600;color:${escColor}">${d.escalation||'—'}</span></div>
-      <div style="margin-top:4px"><span style="font-size:10px;color:var(--muted)">Countries involved:</span> <span class="mono" style="font-size:12px;font-weight:600">${d.countries||'—'}</span></div>
+      <div style="margin-top:6px"><span style="font-size:10px;color:var(--muted)">Escalation:</span> <span class="mono" style="font-size:13px;font-weight:600;color:${escColor}">${d.escalation||'—'}</span></div>
+      <div style="margin-top:4px"><span style="font-size:10px;color:var(--muted)">Countries:</span> <span class="mono" style="font-size:13px;font-weight:600">${d.countries||'—'}</span></div>
       <div style="margin-top:4px"><span style="font-size:10px;color:var(--muted)">Leadership:</span> <span style="font-size:11px">${d.leadership||'—'}</span></div>
     </div>
     <div class="card">
       <div class="card-label">Ceasefire Status</div>
       <div class="card-val-sm mono" style="color:${cfColor};margin-top:4px">${d.ceasefire||'—'}</div>
-      <div style="margin-top:6px;font-size:11px;color:#808090;line-height:1.5">${d.ceasefire_signal||'—'}</div>
+      <div style="margin-top:6px;font-size:11px;color:var(--muted);line-height:1.5">${d.ceasefire_signal||'—'}</div>
       <div style="margin-top:6px"><span style="font-size:10px;color:var(--muted)">Red Sea:</span> <span class="mono" style="font-size:11px;color:${d.red_sea==="OPEN"?"var(--green)":"var(--red)"}">${d.red_sea||'—'}</span></div>
     </div>`;
 }
 
-function renderPeers(peers) {
-  if(!peers||!peers.length) { $("peerSection").innerHTML='<div style="color:var(--muted);font-size:12px">No data</div>'; return; }
-  const usdnok = (cache.prices && cache.prices.usdnok) || 11.3;
-  let h = '';
-  peers.forEach(p => {
-    const c = (p.change_pct||0)>=0?'var(--green)':'var(--red)';
-    const nokPrice = (p.price_usd * usdnok).toFixed(1);
-    h += `<div class="peer-row">
-      <span style="font-weight:600;font-size:13px">${p.ticker}</span>
-      <span class="mono" style="font-size:13px">$${p.price_usd} <span style="font-size:10px;color:var(--muted)">(≈${nokPrice} NOK)</span></span>
-      <span class="mono" style="font-size:12px;color:${c}">${(p.change_pct||0)>=0?'+':''}${(p.change_pct||0).toFixed(2)}%</span>
-    </div>`;
+function renderPeers(peers){
+  if(!peers||!peers.length){$("peerSection").innerHTML='<div style="color:var(--muted);font-size:12px">No data</div>';return;}
+  const usdnok=(cache.prices&&cache.prices.usdnok)||11.3;
+  let h='';
+  peers.forEach(p=>{
+    const c=(p.change_pct||0)>=0?'var(--green)':'var(--red)';
+    const nok=(p.price_usd*usdnok).toFixed(0);
+    h+=`<div class="peer-row"><span style="font-weight:600;font-size:13px">${p.ticker}</span><span class="mono" style="font-size:13px">$${p.price_usd} <span style="font-size:10px;color:var(--muted)">(≈${nok} NOK)</span></span><span class="mono" style="font-size:12px;color:${c}">${(p.change_pct||0)>=0?'+':''}${(p.change_pct||0).toFixed(2)}%</span></div>`;
   });
-  $("peerSection").innerHTML = h;
+  $("peerSection").innerHTML=h;
 }
 
-function renderAnalysts(a) {
-  if(!a) { $("analystSection").innerHTML='<div style="color:var(--muted);font-size:12px">No data</div>'; return; }
-  const total = (a.buy||0)+(a.hold||0)+(a.sell||0);
-  const buyPct = total>0?((a.buy||0)/total*100):0;
-  $("analystSection").innerHTML = `
+function renderAnalysts(a){
+  if(!a){$("analystSection").innerHTML='<div style="color:var(--muted);font-size:12px">No data</div>';return;}
+  const total=(a.buy||0)+(a.hold||0)+(a.sell||0);const buyPct=total>0?((a.buy||0)/total*100):0;
+  $("analystSection").innerHTML=`
     <div style="display:flex;gap:16px;align-items:center;margin-bottom:8px">
       <div><span style="font-size:10px;color:var(--muted)">Buy</span> <span class="mono" style="font-size:14px;font-weight:600;color:var(--green)">${a.buy||0}</span></div>
       <div><span style="font-size:10px;color:var(--muted)">Hold</span> <span class="mono" style="font-size:14px;font-weight:600">${a.hold||0}</span></div>
@@ -511,46 +411,26 @@ function renderAnalysts(a) {
       <div style="margin-left:auto"><span style="font-size:10px;color:var(--muted)">Avg PT</span> <span class="mono" style="font-size:14px;font-weight:600">$${a.avg_pt_usd||'—'}</span></div>
       <div><span style="font-size:10px;color:var(--muted)">Range</span> <span class="mono" style="font-size:12px">$${a.low_pt_usd||'—'} — $${a.high_pt_usd||'—'}</span></div>
     </div>
-    <div class="prog-wrap" style="height:6px;margin:0"><div class="prog-fill" style="width:${buyPct}%;background:var(--green)"></div></div>
-    ${a.latest_action?`<div style="margin-top:8px;font-size:11px;color:#808090">${a.latest_action}</div>`:''}`;
+    <div class="prog-wrap"><div class="prog-fill" style="width:${buyPct}%;background:var(--green)"></div></div>
+    ${a.latest_action?`<div style="margin-top:8px;font-size:11px;color:var(--muted)">${a.latest_action}</div>`:''}`;
 }
 
-function renderMacro(d) {
-  if(!d) return;
-  $("macroSection").innerHTML = `
+function renderMacro(d){
+  if(!d)return;
+  $("macroSection").innerHTML=`
     <div class="card"><div class="card-label">US NFP (Latest)</div><div class="card-val-sm mono" style="color:${(d.nfp||0)<0?'var(--red)':'var(--green)'}">${d.nfp!=null?d.nfp.toLocaleString():'—'}</div><div class="card-note">Unemployment: ${d.unemp||'—'}%</div></div>
     <div class="card"><div class="card-label">ISM Manufacturing</div><div class="card-val-sm mono" style="color:${(d.ism||50)<50?'var(--red)':'var(--green)'}">${d.ism||'—'}</div><div class="card-note">Next FOMC: ${d.fomc||'—'}</div></div>
     <div class="card"><div class="card-label">Risk Flags</div>
       <div style="margin-top:4px;font-size:11px">${d.oil100?'<span style="color:var(--red)">⚠ Oil >$100</span>':'<span style="color:var(--green)">Oil <$100</span>'}</div>
-      <div style="margin-top:2px;font-size:11px">${d.spr==="YES"?'<span style="color:var(--amber)">⚠ SPR release active</span>':d.spr==="DISCUSSED"?'<span style="color:var(--amber)">SPR release discussed</span>':'<span style="color:var(--muted)">No SPR release</span>'}</div>
+      <div style="margin-top:2px;font-size:11px">${d.spr==="YES"?'<span style="color:var(--amber)">⚠ SPR release active</span>':d.spr==="DISCUSSED"?'<span style="color:var(--amber)">SPR discussed</span>':'<span style="color:var(--muted)">No SPR release</span>'}</div>
     </div>`;
 }
 
-function renderNews(items) {
-  if(!items||!items.length) { $("newsSection").innerHTML='<div class="card" style="color:var(--muted);font-size:12px;text-align:center;padding:24px">No intel yet. Hit Refresh All.</div>'; return; }
-  let h = '';
-  items.forEach(n => {
-    const cls = n.signal==="BULLISH"?"news-bull":n.signal==="BEARISH"?"news-bear":"news-neut";
-    h += `<div class="card news-item ${cls}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span class="news-cat">${n.cat||''}</span>
-        <span class="news-signal ${cls} mono">${n.signal}</span>
-      </div>
-      <div class="news-head">${n.headline||''}</div>
-      <div class="news-body">${n.detail||''}</div>
-      ${n.relevance?`<div class="news-rel">→ ${n.relevance}</div>`:''}
-      ${n.source?`<div class="news-src">${n.source}</div>`:''}
-    </div>`;
-  });
-  $("newsSection").innerHTML = h;
-}
-
-// Init — load cache then auto-refresh
-(async () => {
+// Init
+(async()=>{
   await loadCache();
-  // Auto-refresh if cache is older than 2 hours or empty
-  const age = cache.lastUpdate ? (Date.now() - new Date(cache.lastUpdate).getTime()) : Infinity;
-  if(age > 2*60*60*1000) refreshAll();
+  const age=cache.lastUpdate?(Date.now()-new Date(cache.lastUpdate).getTime()):Infinity;
+  if(age>2*60*60*1000)refreshAll();
 })();
 </script>
 </body>
