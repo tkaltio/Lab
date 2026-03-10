@@ -23,7 +23,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .site-header p{color:var(--muted);font-size:13px;}
 .admin-badge{display:inline-block;background:#10b98115;color:var(--green);font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;margin-left:8px;font-family:'JetBrains Mono',monospace;vertical-align:middle;}
 
-/* App grid — always 4 columns on desktop */
+/* App grid */
 .app-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;}
 @media(max-width:900px){.app-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:500px){.app-grid{grid-template-columns:1fr;}}
@@ -31,12 +31,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .app-card{
   background:var(--card);border:1px solid var(--border);border-radius:12px;
   padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;
-  box-shadow:0 1px 3px rgba(0,0,0,0.04);min-height:180px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
 }
 .app-card:hover{border-color:var(--accent);background:#f0f4ff;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.08);}
 .app-card-icon{font-size:26px;margin-bottom:10px;}
 .app-card-name{font-size:15px;font-weight:600;margin-bottom:4px;}
-.app-card-desc{font-size:11px;color:var(--muted);line-height:1.5;}
 .app-card-status{position:absolute;top:10px;right:10px;font-size:8px;font-weight:600;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;}
 .app-card-live{background:#10b98115;color:var(--green);}
 .app-card-soon{background:#f59e0b15;color:var(--amber);}
@@ -70,7 +69,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </head>
 <body>
 
-<!-- Logout bar (visible when logged in) -->
 <div class="logout-bar hidden" id="logoutBar">
   <span id="sessionInfo"></span>
   <button class="logout-btn" onclick="logout()">Log out</button>
@@ -87,7 +85,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   <div class="site-footer">Built with Claude · Illustrative purposes only</div>
 </div>
 
-<!-- Password modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal" style="position:relative;">
     <button class="modal-close" onclick="closeModal()">×</button>
@@ -100,43 +97,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
 
 <script>
-// === APP REGISTRY ===
 const APPS = [
-  {
-    slug: "fro-dashboard",
-    name: "Investments",
-    desc: "Frontline plc investment dashboard — prices, freight rates, conflict tracker, news intel",
-    icon: "🚢",
-    status: "live",
-    file: "fro-dashboard.html",
-  },
-  {
-    slug: "trading",
-    name: "Daily Trade Advisor",
-    desc: "AI-powered daily trade recommendations with position tracking and performance analytics",
-    icon: "📊",
-    status: "live",
-    file: "trading-dashboard.html",
-  },
-  {
-    slug: "calendar",
-    name: "Family Calendar",
-    desc: "Shared family calendar with event management",
-    icon: "📅",
-    status: "soon",
-    file: null,
-  },
-  {
-    slug: "invitly",
-    name: "Invitly",
-    desc: "Event invitation manager with email integration",
-    icon: "💌",
-    status: "soon",
-    file: null,
-  },
+  { slug: "fro-dashboard", name: "Investments", icon: "🚢", status: "live", file: "fro-dashboard.html" },
+  { slug: "trading", name: "Daily Trade Advisor", icon: "📊", status: "live", file: "trading-dashboard.html" },
+  { slug: "calendar", name: "Family Calendar", icon: "📅", status: "soon", file: null },
+  { slug: "invitly", name: "Invitly", icon: "💌", status: "soon", file: null },
 ];
 
-// === SESSION ===
 function getSession() {
   try {
     const raw = localStorage.getItem("lab_session");
@@ -147,28 +114,11 @@ function getSession() {
   } catch { return null; }
 }
 
-function setSession(token) {
-  localStorage.setItem("lab_session", token);
-}
+function setSession(token) { localStorage.setItem("lab_session", token); }
+function logout() { localStorage.removeItem("lab_session"); window.location.reload(); }
+function canAccess(slug) { const s = getSession(); if (!s) return false; if (s.role === "admin") return true; return s.role === "viewer" && s.app === slug; }
+function isAdmin() { const s = getSession(); return s && s.role === "admin"; }
 
-function logout() {
-  localStorage.removeItem("lab_session");
-  window.location.reload();
-}
-
-function canAccess(slug) {
-  const s = getSession();
-  if (!s) return false;
-  if (s.role === "admin") return true;
-  return s.role === "viewer" && s.app === slug;
-}
-
-function isAdmin() {
-  const s = getSession();
-  return s && s.role === "admin";
-}
-
-// === RENDER ===
 function renderApps() {
   const session = getSession();
   const admin = isAdmin();
@@ -194,21 +144,16 @@ function renderApps() {
       <span class="app-card-status ${app.status==='live'?'app-card-live':'app-card-soon'}">${app.status==='live'?'LIVE':'COMING SOON'}</span>
       <div class="app-card-icon">${app.icon}</div>
       <div class="app-card-name">${app.name}</div>
-      <div class="app-card-desc">${app.desc}</div>
       ${!isSoon ? `<div class="app-card-lock">${accessible ? '🔓 Access granted' : '🔒 Password required'}</div>` : ''}
     </div>`;
   });
   document.getElementById("appGrid").innerHTML = html;
 }
 
-// === MODAL ===
 let pendingSlug = null;
 
 function openApp(slug) {
-  if (canAccess(slug)) {
-    navigateToApp(slug);
-    return;
-  }
+  if (canAccess(slug)) { navigateToApp(slug); return; }
   pendingSlug = slug;
   const app = APPS.find(a => a.slug === slug);
   document.getElementById("modalTitle").textContent = app ? app.name : "Enter password";
@@ -219,56 +164,25 @@ function openApp(slug) {
   setTimeout(() => document.getElementById("modalPassword").focus(), 100);
 }
 
-function closeModal() {
-  document.getElementById("modalOverlay").classList.remove("active");
-  pendingSlug = null;
-}
+function closeModal() { document.getElementById("modalOverlay").classList.remove("active"); pendingSlug = null; }
 
 async function submitPassword() {
   const pw = document.getElementById("modalPassword").value.trim();
   if (!pw) return;
-
   const btn = document.getElementById("modalBtn");
-  btn.disabled = true;
-  btn.textContent = "Checking...";
+  btn.disabled = true; btn.textContent = "Checking...";
   document.getElementById("modalError").style.display = "none";
-
   try {
-    const res = await fetch("/api/verify-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ app_slug: pendingSlug, password: pw }),
-    });
+    const res = await fetch("/api/verify-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ app_slug: pendingSlug, password: pw }) });
     const data = await res.json();
-
-    if (data.ok) {
-      setSession(data.token);
-      closeModal();
-      renderApps();
-      setTimeout(() => navigateToApp(pendingSlug), 200);
-    } else {
-      document.getElementById("modalError").style.display = "block";
-      document.getElementById("modalError").textContent = data.error || "Wrong password";
-      document.getElementById("modalPassword").value = "";
-      document.getElementById("modalPassword").focus();
-    }
-  } catch (e) {
-    document.getElementById("modalError").style.display = "block";
-    document.getElementById("modalError").textContent = "Connection error: " + e.message;
-  }
-
-  btn.disabled = false;
-  btn.textContent = "Enter";
+    if (data.ok) { setSession(data.token); closeModal(); renderApps(); setTimeout(() => navigateToApp(pendingSlug), 200); }
+    else { document.getElementById("modalError").style.display = "block"; document.getElementById("modalError").textContent = data.error || "Wrong password"; document.getElementById("modalPassword").value = ""; document.getElementById("modalPassword").focus(); }
+  } catch (e) { document.getElementById("modalError").style.display = "block"; document.getElementById("modalError").textContent = "Connection error: " + e.message; }
+  btn.disabled = false; btn.textContent = "Enter";
 }
 
-function navigateToApp(slug) {
-  const app = APPS.find(a => a.slug === slug);
-  if (app && app.file) {
-    window.location.href = "/apps/" + app.file;
-  }
-}
+function navigateToApp(slug) { const app = APPS.find(a => a.slug === slug); if (app && app.file) window.location.href = "/apps/" + app.file; }
 
-// === INIT ===
 renderApps();
 </script>
 </body>
