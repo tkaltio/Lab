@@ -9,30 +9,20 @@
 :root {
   --bg: #f5f5f7; --card: #ffffff; --border: #e2e2e8; --text: #1a1a2e;
   --muted: #8a8a9a; --accent: #3b82f6; --green: #10b981; --red: #ef4444;
-  --amber: #f59e0b; --glow: rgba(59,130,246,0.08);
+  --amber: #f59e0b;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
-
 .wrap{max-width:1200px;margin:0 auto;padding:40px 24px;position:relative;z-index:1;}
-
-/* Header */
 .site-header{margin-bottom:48px;text-align:center;}
 .site-header h1{font-size:28px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px;}
 .site-header h1 span{color:var(--accent);}
 .site-header p{color:var(--muted);font-size:13px;}
 .admin-badge{display:inline-block;background:#10b98115;color:var(--green);font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;margin-left:8px;font-family:'JetBrains Mono',monospace;vertical-align:middle;}
-
-/* App grid */
 .app-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;}
 @media(max-width:900px){.app-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:500px){.app-grid{grid-template-columns:1fr;}}
-
-.app-card{
-  background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;
-  box-shadow:0 1px 3px rgba(0,0,0,0.04);
-}
+.app-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
 .app-card:hover{border-color:var(--accent);background:#f0f4ff;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.08);}
 .app-card-icon{font-size:26px;margin-bottom:10px;}
 .app-card-name{font-size:15px;font-weight:600;margin-bottom:4px;}
@@ -40,8 +30,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .app-card-live{background:#10b98115;color:var(--green);}
 .app-card-soon{background:#f59e0b15;color:var(--amber);}
 .app-card-lock{margin-top:10px;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;}
-
-/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .modal-overlay.active{opacity:1;pointer-events:all;}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;max-width:380px;width:100%;transform:translateY(10px);transition:transform 0.2s;box-shadow:0 20px 60px rgba(0,0,0,0.15);}
@@ -56,11 +44,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .modal-btn:disabled{opacity:0.4;cursor:default;}
 .modal-error{color:var(--red);font-size:12px;margin-bottom:12px;display:none;}
 .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;}
-
-/* Footer */
 .site-footer{margin-top:60px;text-align:center;font-size:10px;color:#b0b0b8;padding-bottom:20px;}
-
-/* Logout bar */
 .logout-bar{position:fixed;top:0;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;font-size:11px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
 .logout-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:4px;font-size:10px;cursor:pointer;font-family:inherit;}
 .logout-btn:hover{color:var(--text);border-color:var(--muted);}
@@ -68,23 +52,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </style>
 </head>
 <body>
-
 <div class="logout-bar hidden" id="logoutBar">
   <span id="sessionInfo"></span>
   <button class="logout-btn" onclick="logout()">Log out</button>
 </div>
-
 <div class="wrap" style="padding-top:20px;" id="mainWrap">
   <div class="site-header">
     <h1>Tommi's <span>Lab</span> <span id="adminBadge" class="admin-badge hidden">ADMIN</span></h1>
     <p>Tools, dashboards & experiments</p>
   </div>
-
   <div class="app-grid" id="appGrid"></div>
-
   <div class="site-footer">Built with Claude · Illustrative purposes only</div>
 </div>
-
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal" style="position:relative;">
     <button class="modal-close" onclick="closeModal()">×</button>
@@ -95,94 +74,38 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <button class="modal-btn" id="modalBtn" onclick="submitPassword()">Enter</button>
   </div>
 </div>
-
 <script>
 const APPS = [
-  { slug: "fro-dashboard", name: "Investments", icon: "🚢", status: "live", file: "fro-dashboard.html" },
+  { slug: "fro-dashboard", name: "Investments", icon: "🚢", status: "live", file: "investments.html" },
   { slug: "trading", name: "Daily Trade Advisor", icon: "📊", status: "live", file: "trading-dashboard.html" },
   { slug: "calendar", name: "Family Calendar", icon: "📅", status: "soon", file: null },
   { slug: "invitly", name: "Invitly", icon: "💌", status: "soon", file: null },
 ];
-
-function getSession() {
-  try {
-    const raw = localStorage.getItem("lab_session");
-    if (!raw) return null;
-    const s = JSON.parse(atob(raw));
-    if (Date.now() - s.ts > 7 * 24 * 60 * 60 * 1000) { localStorage.removeItem("lab_session"); return null; }
-    return s;
-  } catch { return null; }
-}
-
-function setSession(token) { localStorage.setItem("lab_session", token); }
-function logout() { localStorage.removeItem("lab_session"); window.location.reload(); }
-function canAccess(slug) { const s = getSession(); if (!s) return false; if (s.role === "admin") return true; return s.role === "viewer" && s.app === slug; }
-function isAdmin() { const s = getSession(); return s && s.role === "admin"; }
-
-function renderApps() {
-  const session = getSession();
-  const admin = isAdmin();
-
-  if (session) {
-    document.getElementById("logoutBar").classList.remove("hidden");
-    document.getElementById("mainWrap").style.paddingTop = "56px";
-    document.getElementById("sessionInfo").innerHTML = admin
-      ? '<span style="color:var(--green)">● Admin access</span>'
-      : `<span style="color:var(--accent)">● Viewer — ${session.app}</span>`;
-  } else {
-    document.getElementById("logoutBar").classList.add("hidden");
-    document.getElementById("mainWrap").style.paddingTop = "20px";
-  }
-
-  document.getElementById("adminBadge").classList.toggle("hidden", !admin);
-
-  let html = "";
-  APPS.forEach(app => {
-    const accessible = canAccess(app.slug);
-    const isSoon = app.status === "soon";
-    html += `<div class="app-card" onclick="${isSoon ? '' : `openApp('${app.slug}')`}" style="${isSoon?'opacity:0.5;cursor:default;':''}">
+function getSession(){try{const raw=localStorage.getItem("lab_session");if(!raw)return null;const s=JSON.parse(atob(raw));if(Date.now()-s.ts>7*24*60*60*1000){localStorage.removeItem("lab_session");return null;}return s;}catch{return null;}}
+function setSession(token){localStorage.setItem("lab_session",token);}
+function logout(){localStorage.removeItem("lab_session");window.location.reload();}
+function canAccess(slug){const s=getSession();if(!s)return false;if(s.role==="admin")return true;return s.role==="viewer"&&s.app===slug;}
+function isAdmin(){const s=getSession();return s&&s.role==="admin";}
+function renderApps(){
+  const session=getSession();const admin=isAdmin();
+  if(session){document.getElementById("logoutBar").classList.remove("hidden");document.getElementById("mainWrap").style.paddingTop="56px";document.getElementById("sessionInfo").innerHTML=admin?'<span style="color:var(--green)">● Admin access</span>':`<span style="color:var(--accent)">● Viewer — ${session.app}</span>`;}
+  else{document.getElementById("logoutBar").classList.add("hidden");document.getElementById("mainWrap").style.paddingTop="20px";}
+  document.getElementById("adminBadge").classList.toggle("hidden",!admin);
+  let html="";
+  APPS.forEach(app=>{const accessible=canAccess(app.slug);const isSoon=app.status==="soon";
+    html+=`<div class="app-card" onclick="${isSoon?'':`openApp('${app.slug}')`}" style="${isSoon?'opacity:0.5;cursor:default;':''}">
       <span class="app-card-status ${app.status==='live'?'app-card-live':'app-card-soon'}">${app.status==='live'?'LIVE':'COMING SOON'}</span>
       <div class="app-card-icon">${app.icon}</div>
       <div class="app-card-name">${app.name}</div>
-      ${!isSoon ? `<div class="app-card-lock">${accessible ? '🔓 Access granted' : '🔒 Password required'}</div>` : ''}
-    </div>`;
-  });
-  document.getElementById("appGrid").innerHTML = html;
+      ${!isSoon?`<div class="app-card-lock">${accessible?'🔓 Access granted':'🔒 Password required'}</div>`:''}
+    </div>`;});
+  document.getElementById("appGrid").innerHTML=html;
 }
-
-let pendingSlug = null;
-
-function openApp(slug) {
-  if (canAccess(slug)) { navigateToApp(slug); return; }
-  pendingSlug = slug;
-  const app = APPS.find(a => a.slug === slug);
-  document.getElementById("modalTitle").textContent = app ? app.name : "Enter password";
-  document.getElementById("modalDesc").textContent = "Enter the access code to continue.";
-  document.getElementById("modalError").style.display = "none";
-  document.getElementById("modalPassword").value = "";
-  document.getElementById("modalOverlay").classList.add("active");
-  setTimeout(() => document.getElementById("modalPassword").focus(), 100);
-}
-
-function closeModal() { document.getElementById("modalOverlay").classList.remove("active"); pendingSlug = null; }
-
-async function submitPassword() {
-  const pw = document.getElementById("modalPassword").value.trim();
-  if (!pw) return;
-  const btn = document.getElementById("modalBtn");
-  btn.disabled = true; btn.textContent = "Checking...";
-  document.getElementById("modalError").style.display = "none";
-  try {
-    const res = await fetch("/api/verify-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ app_slug: pendingSlug, password: pw }) });
-    const data = await res.json();
-    if (data.ok) { setSession(data.token); closeModal(); renderApps(); setTimeout(() => navigateToApp(pendingSlug), 200); }
-    else { document.getElementById("modalError").style.display = "block"; document.getElementById("modalError").textContent = data.error || "Wrong password"; document.getElementById("modalPassword").value = ""; document.getElementById("modalPassword").focus(); }
-  } catch (e) { document.getElementById("modalError").style.display = "block"; document.getElementById("modalError").textContent = "Connection error: " + e.message; }
-  btn.disabled = false; btn.textContent = "Enter";
-}
-
-function navigateToApp(slug) { const app = APPS.find(a => a.slug === slug); if (app && app.file) window.location.href = "/apps/" + app.file; }
-
+let pendingSlug=null;
+function openApp(slug){if(canAccess(slug)){navigateToApp(slug);return;}pendingSlug=slug;const app=APPS.find(a=>a.slug===slug);document.getElementById("modalTitle").textContent=app?app.name:"Enter password";document.getElementById("modalDesc").textContent="Enter the access code to continue.";document.getElementById("modalError").style.display="none";document.getElementById("modalPassword").value="";document.getElementById("modalOverlay").classList.add("active");setTimeout(()=>document.getElementById("modalPassword").focus(),100);}
+function closeModal(){document.getElementById("modalOverlay").classList.remove("active");pendingSlug=null;}
+async function submitPassword(){const pw=document.getElementById("modalPassword").value.trim();if(!pw)return;const btn=document.getElementById("modalBtn");btn.disabled=true;btn.textContent="Checking...";document.getElementById("modalError").style.display="none";try{const res=await fetch("/api/verify-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({app_slug:pendingSlug,password:pw})});const data=await res.json();if(data.ok){setSession(data.token);closeModal();renderApps();setTimeout(()=>navigateToApp(pendingSlug),200);}else{document.getElementById("modalError").style.display="block";document.getElementById("modalError").textContent=data.error||"Wrong password";document.getElementById("modalPassword").value="";document.getElementById("modalPassword").focus();}}catch(e){document.getElementById("modalError").style.display="block";document.getElementById("modalError").textContent="Connection error: "+e.message;}btn.disabled=false;btn.textContent="Enter";}
+function navigateToApp(slug){const app=APPS.find(a=>a.slug===slug);if(app&&app.file)window.location.href="/apps/"+app.file;}
 renderApps();
 </script>
 </body>
