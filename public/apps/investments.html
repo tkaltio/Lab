@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investments — Tommi's Lab</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a10; --card: #111118; --border: #1c1c2a; --text: #e0e0e8;
+  --muted: #5c5c70; --green: #10b981; --red: #ef4444; --blue: #3b82f6;
+  --amber: #f59e0b; --purple: #8b5cf6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* Nav bar */
+.nav{position:fixed;top:0;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;}
+.nav a{color:var(--muted);font-size:11px;text-decoration:none;}
+.nav a:hover{color:var(--text);}
+.nav-title{font-size:12px;font-weight:600;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.refresh-btn{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;}
+.refresh-btn:disabled{opacity:0.4;}
+.status-text{font-size:9px;color:var(--muted);}
+
+/* Layout */
+.main{padding:52px 16px 20px;max-width:1400px;margin:0 auto;}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:calc(100vh - 72px);}
+@media(max-width:900px){.split{grid-template-columns:1fr;}}
+
+/* Section headers */
+.section-head{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* Position cards */
+.pos-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;}
+.pos-card:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.pos-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.pos-ticker{font-size:17px;font-weight:700;}
+.pos-name{font-size:11px;color:var(--muted);margin-left:8px;font-weight:400;}
+.pos-badge{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;}
+.pos-metrics{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.pos-metric-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;}
+.pos-metric-val{font-size:14px;font-weight:600;margin-top:2px;}
+.pos-thesis{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;border-top:1px solid var(--border);padding-top:10px;}
+.pos-chart-wrap{height:80px;margin-top:10px;}
+
+/* News */
+.news-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+.news-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.news-cat{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+.news-signal{padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;}
+.news-bull{background:#10b98118;color:var(--green);}
+.news-bear{background:#ef444418;color:var(--red);}
+.news-neut{background:#3b82f618;color:var(--blue);}
+.news-head{font-size:13px;font-weight:600;margin-bottom:3px;}
+.news-body{font-size:11px;color:#808090;line-height:1.5;}
+.news-rel{font-size:10px;color:var(--amber);margin-top:5px;}
+.news-src{font-size:9px;color:var(--muted);margin-top:3px;}
+.news-time{font-size:9px;color:var(--muted);}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:12px;}
+
+/* Add position button */
+.add-pos{background:var(--card);border:1px dashed var(--border);border-radius:10px;padding:20px;text-align:center;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.2s;}
+.add-pos:hover{border-color:var(--blue);color:var(--text);}
+
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<script>
+(function(){
+  try {
+    const raw = localStorage.getItem("lab_session");
+    if(!raw){window.location.href="/";return;}
+    const s = JSON.parse(atob(raw));
+    if(Date.now()-s.ts > 7*24*60*60*1000){localStorage.removeItem("lab_session");window.location.href="/";return;}
+    if(s.role!=="admin" && s.app!=="fro-dashboard"){window.location.href="/";return;}
+  }catch{window.location.href="/";}
+})();
+</script>
+
+<div class="nav">
+  <div style="display:flex;align-items:center;gap:12px">
+    <a href="/">← Back to Lab</a>
+    <span class="nav-title">Investments</span>
+  </div>
+  <div class="nav-right">
+    <span class="status-text" id="statusText"></span>
+    <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">Refresh All</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="split">
+    <!-- LEFT: Positions -->
+    <div>
+      <div class="section-head">📊 Positions</div>
+      <div id="positionsArea"></div>
+    </div>
+
+    <!-- RIGHT: News -->
+    <div>
+      <div class="section-head">📰 Market Intelligence</div>
+      <div id="newsArea"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CACHE_KEY = "investments-page-v1";
+const POSITIONS = [
+  {
+    id: "fro",
+    ticker: "FRO.OL",
+    name: "Frontline plc",
+    exchange: "Oslo / NYSE",
+    direction: "LONG",
+    entry: 330,
+    target: 466,
+    stop: 277,
+    currency: "NOK",
+    entry_date: "2026-03-07",
+    thesis: "Strait of Hormuz closure drives VLCC rates to all-time highs. Market underprices duration of disruption. 90-95% probability of 4+ week closure.",
+    detail_page: "fro-dashboard.html",
+  },
+];
+
+let cache = {};
+const $ = id => document.getElementById(id);
+
+async function loadCache() {
+  try { const r = localStorage.getItem(CACHE_KEY); if(r) cache = JSON.parse(r); } catch{}
+  renderPositions(cache.prices || {});
+  renderNews(cache.news || []);
+  if(cache.lastUpdate) $("statusText").textContent = "Updated " + new Date(cache.lastUpdate).toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+}
+
+function saveCache() { try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch{} }
+
+async function apiCall(prompt) {
+  const res = await fetch("/api/claude-proxy", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      model:"claude-sonnet-4-20250514", max_tokens:1500,
+      tools:[{type:"web_search_20250305",name:"web_search"}],
+      messages:[{role:"user",content:prompt}]
+    })
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message);
+  const text = (data.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+  const m = text.match(/\{[\s\S]*\}/);
+  if(!m) throw new Error("No JSON");
+  return JSON.parse(m[0]);
+}
+
+async function refreshAll() {
+  $("refreshBtn").disabled = true;
+  $("statusText").textContent = "Scanning...";
+  const results = await Promise.allSettled([fetchPrices(), fetchNews()]);
+  const failed = results.filter(r=>r.status==="rejected").length;
+  cache.lastUpdate = new Date().toISOString();
+  saveCache();
+  $("statusText").textContent = failed > 0 ? `Done (${failed} failed)` : "Updated " + new Date().toLocaleString("fi-FI",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  $("refreshBtn").disabled = false;
+}
+
+async function fetchPrices() {
+  const tickers = POSITIONS.map(p => p.ticker).join(", ");
+  const d = await apiCall(`Search for the LATEST stock prices of: ${tickers}. Also get Brent crude oil price, VLCC TD3C tanker rate, and USDNOK exchange rate. Return ONLY JSON:
+{
+  "prices": {
+    "FRO.OL": {"price":number,"change_pct":number,"currency":"NOK"},
+    "FRO_USD": {"price":number,"change_pct":number}
+  },
+  "brent_usd": number,
+  "brent_change_pct": number,
+  "vlcc_td3c": number,
+  "usdnok": number,
+  "as_of": "date"
+}`);
+  cache.prices = d;
+  renderPositions(d);
+}
+
+async function fetchNews() {
+  const d = await apiCall(`Search for the LATEST investment-relevant news. Focus on: Strait of Hormuz shipping status, Iran war developments, VLCC/tanker freight rates, oil prices, Frontline plc company news, and major macro events. Return ONLY JSON:
+{"items":[{"cat":"HORMUZ|IRAN|FREIGHT|OIL|FRO|MACRO","signal":"BULLISH|BEARISH|NEUTRAL","headline":"short headline","detail":"2-3 sentences","relevance":"why it matters for tanker/energy investments","source":"source name","time":"approximate time or date"}]}
+Return 8-10 items ranked by importance to investment positions.`);
+  cache.news = d.items || [];
+  renderNews(cache.news);
+}
+
+function renderPositions(priceData) {
+  let html = "";
+
+  POSITIONS.forEach(pos => {
+    const key = pos.ticker.replace(".","_");
+    const pd = priceData?.prices?.[pos.ticker] || priceData?.prices?.[key] || null;
+    const currentPrice = pd ? pd.price : null;
+    const changePct = pd ? pd.change_pct : null;
+    const pnlPct = currentPrice ? ((currentPrice - pos.entry) / pos.entry * 100) : null;
+    const pnlVal = currentPrice ? (currentPrice - pos.entry) : null;
+    const progPct = currentPrice ? Math.max(0, Math.min(100, ((currentPrice - pos.stop) / (pos.target - pos.stop)) * 100)) : 50;
+    const brent = priceData?.brent_usd || null;
+    const vlcc = priceData?.vlcc_td3c || null;
+    const dirColor = pos.direction === "LONG" ? "var(--green)" : "var(--red)";
+    const dirBg = pos.direction === "LONG" ? "#10b98118" : "#ef444418";
+
+    html += `<div class="pos-card" onclick="window.location.href='/apps/${pos.detail_page}'">
+      <div class="pos-head">
+        <div>
+          <span class="pos-ticker">${pos.ticker}</span>
+          <span class="pos-name">${pos.name}</span>
+        </div>
+        <span class="pos-badge mono" style="background:${dirBg};color:${dirColor}">${pos.direction}</span>
+      </div>
+
+      <div class="pos-metrics">
+        <div>
+          <div class="pos-metric-label">Price</div>
+          <div class="pos-metric-val mono">${currentPrice ? currentPrice.toFixed(1) : '—'} <span style="font-size:10px;color:var(--muted)">${pos.currency}</span></div>
+          ${changePct != null ? `<div style="font-size:10px;color:${changePct >= 0 ? 'var(--green)' : 'var(--red)'}" class="mono">${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%</div>` : ''}
+        </div>
+        <div>
+          <div class="pos-metric-label">P&L</div>
+          <div class="pos-metric-val mono" style="color:${pnlPct >= 0 ? 'var(--green)' : 'var(--red)'}">${pnlPct != null ? (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%' : '—'}</div>
+          ${pnlVal != null ? `<div style="font-size:10px;color:${pnlVal >= 0 ? 'var(--green)' : 'var(--red)'}" class="mono">${pnlVal >= 0 ? '+' : ''}${pnlVal.toFixed(1)} ${pos.currency}</div>` : ''}
+        </div>
+        <div>
+          <div class="pos-metric-label">Brent</div>
+          <div class="pos-metric-val mono" style="color:${brent >= 100 ? 'var(--red)' : 'var(--amber)'}">${brent ? '$' + brent.toFixed(2) : '—'}</div>
+          ${priceData?.brent_change_pct != null ? `<div style="font-size:10px;color:${priceData.brent_change_pct >= 0 ? 'var(--green)' : 'var(--red)'}" class="mono">${priceData.brent_change_pct >= 0 ? '+' : ''}${priceData.brent_change_pct.toFixed(2)}%</div>` : ''}
+        </div>
+        <div>
+          <div class="pos-metric-label">VLCC Rate</div>
+          <div class="pos-metric-val mono" style="color:var(--green)">${vlcc ? '$' + Number(vlcc).toLocaleString() : '—'}</div>
+          <div style="font-size:10px;color:var(--muted)">/day</div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px">
+          <span>Stop ${pos.stop}</span>
+          <span>Entry ${pos.entry}</span>
+          <span>Target ${pos.target}</span>
+        </div>
+        <div style="height:4px;background:#1a1a28;border-radius:2px;position:relative;">
+          <div style="height:100%;width:${progPct}%;background:${progPct > 60 ? 'var(--green)' : progPct < 30 ? 'var(--red)' : 'var(--amber)'};border-radius:2px;"></div>
+        </div>
+      </div>
+
+      <div class="pos-thesis">${pos.thesis}</div>
+
+      <div style="margin-top:8px;font-size:9px;color:var(--muted)">Entry ${pos.entry_date} · ${pos.exchange} · Click for full dashboard →</div>
+    </div>`;
+  });
+
+  // Add position placeholder
+  html += `<div class="add-pos" onclick="alert('Add positions by editing the POSITIONS array in the source code, or ask Claude to add them.')">+ Add position</div>`;
+
+  $("positionsArea").innerHTML = html;
+}
+
+function renderNews(items) {
+  if (!items || !items.length) {
+    $("newsArea").innerHTML = '<div class="empty">No news yet. Hit Refresh All to scan.</div>';
+    return;
+  }
+  let html = "";
+  items.forEach(n => {
+    const cls = n.signal === "BULLISH" ? "news-bull" : n.signal === "BEARISH" ? "news-bear" : "news-neut";
+    html += `<div class="news-item" style="border-left:3px solid ${n.signal === 'BULLISH' ? 'var(--green)' : n.signal === 'BEARISH' ? 'var(--red)' : 'var(--blue)'}">
+      <div class="news-top">
+        <span class="news-cat">${n.cat || ''}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="news-time">${n.time || ''}</span>
+          <span class="news-signal ${cls} mono">${n.signal}</span>
+        </div>
+      </div>
+      <div class="news-head">${n.headline || ''}</div>
+      <div class="news-body">${n.detail || ''}</div>
+      ${n.relevance ? `<div class="news-rel">→ ${n.relevance}</div>` : ''}
+      ${n.source ? `<div class="news-src">${n.source}</div>` : ''}
+    </div>`;
+  });
+  $("newsArea").innerHTML = html;
+}
+
+// Init
+loadCache();
+// Auto-refresh if stale (>2 hours)
+const age = cache.lastUpdate ? (Date.now() - new Date(cache.lastUpdate).getTime()) : Infinity;
+if (age > 2 * 60 * 60 * 1000) refreshAll();
+</script>
+</body>
+</html>
