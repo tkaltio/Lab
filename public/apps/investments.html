@@ -8,8 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a10; --card: #111118; --border: #1c1c2a; --text: #e0e0e8;
-  --muted: #5c5c70; --green: #10b981; --red: #ef4444; --blue: #3b82f6;
+  --bg: #f5f5f7; --card: #ffffff; --border: #e2e2e8; --text: #1a1a2e;
+  --muted: #8a8a9a; --green: #10b981; --red: #ef4444; --blue: #3b82f6;
   --amber: #f59e0b; --purple: #8b5cf6;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -17,10 +17,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .mono{font-family:'JetBrains Mono',monospace;}
 
 /* Nav bar */
-.nav{position:fixed;top:0;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;}
+.nav{position:fixed;top:0;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;justify-content:space-between;align-items:center;z-index:50;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
 .nav a{color:var(--muted);font-size:11px;text-decoration:none;}
 .nav a:hover{color:var(--text);}
-.nav-title{font-size:12px;font-weight:600;}
+.nav-title{font-size:12px;font-weight:600;margin-left:12px;}
 .nav-right{display:flex;align-items:center;gap:10px;}
 .refresh-btn{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;}
 .refresh-btn:disabled{opacity:0.4;}
@@ -35,8 +35,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .section-head{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
 
 /* Position cards */
-.pos-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;}
-.pos-card:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.pos-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all 0.2s;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.03);}
+.pos-card:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.08);}
 .pos-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
 .pos-ticker{font-size:17px;font-weight:700;}
 .pos-name{font-size:11px;color:var(--muted);margin-left:8px;font-weight:400;}
@@ -45,18 +45,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .pos-metric-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;}
 .pos-metric-val{font-size:14px;font-weight:600;margin-top:2px;}
 .pos-thesis{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;border-top:1px solid var(--border);padding-top:10px;}
-.pos-chart-wrap{height:80px;margin-top:10px;}
 
 /* News */
-.news-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+.news-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.03);}
 .news-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .news-cat{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
 .news-signal{padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;}
-.news-bull{background:#10b98118;color:var(--green);}
-.news-bear{background:#ef444418;color:var(--red);}
-.news-neut{background:#3b82f618;color:var(--blue);}
+.news-bull{background:#10b98115;color:var(--green);}
+.news-bear{background:#ef444415;color:var(--red);}
+.news-neut{background:#3b82f615;color:var(--blue);}
 .news-head{font-size:13px;font-weight:600;margin-bottom:3px;}
-.news-body{font-size:11px;color:#808090;line-height:1.5;}
+.news-body{font-size:11px;color:var(--muted);line-height:1.5;}
 .news-rel{font-size:10px;color:var(--amber);margin-top:5px;}
 .news-src{font-size:9px;color:var(--muted);margin-top:3px;}
 .news-time{font-size:9px;color:var(--muted);}
@@ -112,7 +111,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
 
 <script>
-const CACHE_KEY = "investments-page-v1";
+const CACHE_KEY = "investments-page-v2";
 const POSITIONS = [
   {
     id: "fro",
@@ -200,8 +199,7 @@ function renderPositions(priceData) {
   let html = "";
 
   POSITIONS.forEach(pos => {
-    const key = pos.ticker.replace(".","_");
-    const pd = priceData?.prices?.[pos.ticker] || priceData?.prices?.[key] || null;
+    const pd = priceData?.prices?.[pos.ticker] || null;
     const currentPrice = pd ? pd.price : null;
     const changePct = pd ? pd.change_pct : null;
     const pnlPct = currentPrice ? ((currentPrice - pos.entry) / pos.entry * 100) : null;
@@ -210,7 +208,7 @@ function renderPositions(priceData) {
     const brent = priceData?.brent_usd || null;
     const vlcc = priceData?.vlcc_td3c || null;
     const dirColor = pos.direction === "LONG" ? "var(--green)" : "var(--red)";
-    const dirBg = pos.direction === "LONG" ? "#10b98118" : "#ef444418";
+    const dirBg = pos.direction === "LONG" ? "#10b98115" : "#ef444415";
 
     html += `<div class="pos-card" onclick="window.location.href='/apps/${pos.detail_page}'">
       <div class="pos-head">
@@ -250,7 +248,7 @@ function renderPositions(priceData) {
           <span>Entry ${pos.entry}</span>
           <span>Target ${pos.target}</span>
         </div>
-        <div style="height:4px;background:#1a1a28;border-radius:2px;position:relative;">
+        <div style="height:4px;background:var(--border);border-radius:2px;position:relative;">
           <div style="height:100%;width:${progPct}%;background:${progPct > 60 ? 'var(--green)' : progPct < 30 ? 'var(--red)' : 'var(--amber)'};border-radius:2px;"></div>
         </div>
       </div>
@@ -261,7 +259,6 @@ function renderPositions(priceData) {
     </div>`;
   });
 
-  // Add position placeholder
   html += `<div class="add-pos" onclick="alert('Add positions by editing the POSITIONS array in the source code, or ask Claude to add them.')">+ Add position</div>`;
 
   $("positionsArea").innerHTML = html;
@@ -275,7 +272,8 @@ function renderNews(items) {
   let html = "";
   items.forEach(n => {
     const cls = n.signal === "BULLISH" ? "news-bull" : n.signal === "BEARISH" ? "news-bear" : "news-neut";
-    html += `<div class="news-item" style="border-left:3px solid ${n.signal === 'BULLISH' ? 'var(--green)' : n.signal === 'BEARISH' ? 'var(--red)' : 'var(--blue)'}">
+    const borderColor = n.signal === "BULLISH" ? "var(--green)" : n.signal === "BEARISH" ? "var(--red)" : "var(--blue)";
+    html += `<div class="news-item" style="border-left:3px solid ${borderColor}">
       <div class="news-top">
         <span class="news-cat">${n.cat || ''}</span>
         <div style="display:flex;align-items:center;gap:6px">
@@ -294,7 +292,6 @@ function renderNews(items) {
 
 // Init
 loadCache();
-// Auto-refresh if stale (>2 hours)
 const age = cache.lastUpdate ? (Date.now() - new Date(cache.lastUpdate).getTime()) : Infinity;
 if (age > 2 * 60 * 60 * 1000) refreshAll();
 </script>
