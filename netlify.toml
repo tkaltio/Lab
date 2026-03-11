@@ -3,11 +3,16 @@
   functions = "netlify/functions"
 
 [[redirects]]
-  from = "/app/*"
-  to = "/app.html"
+  from = "/api/claude-proxy"
+  to = "/.netlify/functions/claude-proxy"
   status = 200
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = "/api/verify-password"
+  to = "/.netlify/functions/verify-password"
+  status = 200
+
+[[redirects]]
+  from = "/api/data-proxy"
+  to = "/.netlify/functions/data-proxy"
   status = 200
