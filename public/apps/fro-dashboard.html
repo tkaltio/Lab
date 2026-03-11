@@ -75,6 +75,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .loader{font-size:11px;color:var(--muted);padding:20px;text-align:center;}
 .rate-edit{background:none;border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;width:100px;color:var(--text);text-align:right;}
 .rate-edit:focus{border-color:var(--blue);outline:none;}
+.news-error{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;font-size:11px;color:#991b1b;}
 </style>
 </head>
 <body>
@@ -120,7 +121,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
   <div class="section">📰 Iran War & Hormuz News <span style="font-weight:400;font-size:9px;color:var(--muted);margin-left:8px;">● <span style="color:var(--green)">Green</span> = bullish for FRO · <span style="color:var(--red)">Red</span> = bearish · Black = neutral</span></div>
   <div class="two-col">
-    <div id="newsCol1"></div>
+    <div id="newsCol1"><div class="loader">Loading news...</div></div>
     <div id="newsCol2"></div>
   </div>
 
@@ -135,13 +136,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
 <script>
 const ENTRY=319, TARGET=466, STOP=277;
-const PROXY="/api/data-proxy";
+const DATA_PROXY="/api/data-proxy";
+const NEWS_PROXY="/api/news-proxy";
 const RATES_KEY="fro-freight-rates-v1";
 
 // ── Yahoo Finance ──
 async function fetchYahoo(symbol,range="1mo",interval="1d"){
-  const url=`${PROXY}?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`)}`;
-  const r=await fetch(url);const d=await r.json();return d?.chart?.result?.[0]||null;
+  const url=`${DATA_PROXY}?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`)}`;
+  const r=await fetch(url);
+  if(!r.ok) throw new Error(symbol+" HTTP "+r.status);
+  const d=await r.json();
+  if(d.chart?.error) throw new Error(symbol+": "+d.chart.error.description);
+  return d?.chart?.result?.[0]||null;
 }
 function parsePrice(r){if(!r)return null;const m=r.meta;return{price:m.regularMarketPrice,prevClose:m.chartPreviousClose||m.previousClose,currency:m.currency};}
 function parseHistory(r){
@@ -149,19 +155,29 @@ function parseHistory(r){
   return ts.map((t,i)=>({date:new Date(t*1000).toISOString().split("T")[0],price:c[i]})).filter(p=>p.price!=null);
 }
 
-// ── News via rss2json ──
+// ── News (direct Google News RSS via our proxy) ──
 async function fetchNews(query){
-  const rss=`https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en&gl=US&ceid=US:en`;
-  const url=`${PROXY}?url=${encodeURIComponent(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rss)}`)}`;
-  const r=await fetch(url);const d=await r.json();return(d?.items||[]).slice(0,8);
+  const url=`${NEWS_PROXY}?q=${encodeURIComponent(query)}`;
+  const r=await fetch(url);
+  if(!r.ok) throw new Error("News HTTP "+r.status);
+  const d=await r.json();
+  if(d.error) throw new Error(d.error);
+  return d?.items||[];
 }
 
 // ── Sentiment ──
-const BULL=["closed","closure","stranded","blockade","escalat","surge","record high","spike","soar","attack","strike","bomb","war intensif","no ceasefire","reject ceasefire","retaliat","oil soar","oil surge","oil jump","tanker rate","VLCC surge","freight surge","drone","missile","hormuz shut","hormuz closed","mine","mining","insurance withdraw","force majeure","halt","disruption","casualties","killed","fire","explosion","naval","warns","cut production","scramble","stranded","convoy","all-time high","record rate"];
-const BEAR=["ceasefire agreed","peace deal","peace talks","reopen","reopening","negotiate success","de-escalat","diplomacy breakthrough","truce","oil fall","oil drop","oil decline","oil slump","resume shipping","traffic resume","insurance restore","stand down","withdrawal","retreat","agreement reached","talks progress","resolution","corridor","safe passage","demand destruction","recession"];
+const BULL=["closed","closure","stranded","blockade","escalat","surge","record high","spike","soar","attack","strike","bomb","war intensif","no ceasefire","reject","retaliat","oil soar","oil surge","oil jump","tanker rate","VLCC","freight","drone","missile","hormuz shut","hormuz closed","mine","mining","insurance withdraw","force majeure","halt","disruption","casualties","killed","fire","explosion","naval","warns","cut production","scramble","convoy","all-time high","record rate","tonnage","vessel shortage","sanctions"];
+const BEAR=["ceasefire agreed","ceasefire deal","peace deal","peace talks progress","reopen","reopening","de-escalat","diplomacy breakthrough","truce","oil fall","oil drop","oil decline","oil slump","resume shipping","traffic resume","insurance restore","stand down","withdrawal","retreat","agreement reached","resolution","corridor","safe passage","demand destruction","recession fears"];
 
-function classify(title){const t=title.toLowerCase();const b=BULL.filter(k=>t.includes(k)).length;const r=BEAR.filter(k=>t.includes(k)).length;return b>r?"bullish":r>b?"bearish":"neutral";}
-function timeAgo(d){const m=Math.floor((Date.now()-new Date(d).getTime())/60000);if(m<60)return m+"m ago";const h=Math.floor(m/60);if(h<24)return h+"h ago";return Math.floor(h/24)+"d ago";}
+function classify(title){
+  const t=title.toLowerCase();
+  const b=BULL.filter(k=>t.includes(k)).length;
+  const r=BEAR.filter(k=>t.includes(k)).length;
+  return b>r?"bullish":r>b?"bearish":"neutral";
+}
+function timeAgo(d){
+  try{const m=Math.floor((Date.now()-new Date(d).getTime())/60000);if(isNaN(m)||m<0)return"";if(m<60)return m+"m ago";const h=Math.floor(m/60);if(h<24)return h+"h ago";return Math.floor(h/24)+"d ago";}catch{return"";}
+}
 function fmtChg(v){return v!=null?(v>=0?"+":"")+v.toFixed(2)+"%":"—";}
 
 // ── Charts ──
@@ -172,11 +188,12 @@ function renderChart(canvasId,data,color,unit,entryLine){
   const grad=ctx.createLinearGradient(0,0,0,200);grad.addColorStop(0,color+"30");grad.addColorStop(1,color+"05");
   const labels=data.map(p=>{const d=p.date.split("-");return d[2]+"."+d[1];});
   const values=data.map(p=>p.price);const minV=Math.min(...values);const maxV=Math.max(...values);
-  const ann=entryLine&&entryLine>=minV*0.92&&entryLine<=maxV*1.04?{annotation:{annotations:{entry:{type:"line",yMin:entryLine,yMax:entryLine,borderColor:"#3b82f650",borderWidth:1.5,borderDash:[5,3],label:{display:true,content:"Entry "+entryLine,position:"end",font:{size:9,family:"'JetBrains Mono',monospace"},color:"#3b82f6",backgroundColor:"#3b82f610",padding:2}}}}}:{};
+  const yMin=minV*0.92;const yMax=maxV*1.04;
+  const ann=entryLine&&entryLine>=yMin&&entryLine<=yMax?{annotation:{annotations:{entry:{type:"line",yMin:entryLine,yMax:entryLine,borderColor:"#3b82f650",borderWidth:1.5,borderDash:[5,3],label:{display:true,content:"Entry "+entryLine,position:"end",font:{size:9,family:"'JetBrains Mono',monospace"},color:"#3b82f6",backgroundColor:"#3b82f610",padding:2}}}}}:{};
 
   new Chart(ctx,{type:"line",data:{labels,datasets:[{data:values,borderColor:color,backgroundColor:grad,fill:true,tension:0.3,pointRadius:2,pointBackgroundColor:"#fff",pointBorderColor:color,pointBorderWidth:1.5,borderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},...ann,tooltip:{backgroundColor:"#1a1a2e",titleFont:{family:"'JetBrains Mono',monospace",size:10},bodyFont:{family:"'JetBrains Mono',monospace",size:11},callbacks:{label:c=>unit==="NOK"?c.parsed.y.toFixed(1)+" NOK":"$"+c.parsed.y.toFixed(2)}}},
-      scales:{x:{grid:{display:false},ticks:{color:"#8a8a9a",font:{size:9,family:"'JetBrains Mono',monospace"},maxRotation:0,maxTicksLimit:8}},y:{grid:{color:"#e2e2e810"},ticks:{color:"#8a8a9a",font:{size:9,family:"'JetBrains Mono',monospace"},callback:v=>unit==="NOK"?v.toFixed(0):"$"+v.toFixed(0)},min:minV*0.92,max:maxV*1.04}}}});
+      scales:{x:{grid:{display:false},ticks:{color:"#8a8a9a",font:{size:9,family:"'JetBrains Mono',monospace"},maxRotation:0,maxTicksLimit:8}},y:{grid:{color:"#e2e2e810"},ticks:{color:"#8a8a9a",font:{size:9,family:"'JetBrains Mono',monospace"},callback:v=>unit==="NOK"?v.toFixed(0):"$"+v.toFixed(0)},min:yMin,max:yMax}}}});
 }
 
 function renderPeerPerfChart(froH,dhtH,inswH,stngH){
@@ -270,8 +287,13 @@ function updateRate(el){const k=el.dataset.key;const v=parseInt(el.value.replace
 
 // ── News ──
 function renderNews(allNews){
+  if(!allNews.length){
+    document.getElementById("newsCol1").innerHTML='<div class="loader">No news found</div>';
+    document.getElementById("newsCol2").innerHTML='';
+    return;
+  }
   const seen=new Set();
-  const unique=allNews.filter(n=>{const k=(n.title||'').replace(/<[^>]*>/g,'').slice(0,50);if(seen.has(k))return false;seen.add(k);return true;});
+  const unique=allNews.filter(n=>{const k=(n.title||'').slice(0,50).toLowerCase();if(seen.has(k))return false;seen.add(k);return true;});
   const classified=unique.map(n=>({...n,sentiment:classify(n.title||'')}));
   classified.sort((a,b)=>{const o={bullish:0,neutral:1,bearish:2};return o[a.sentiment]-o[b.sentiment];});
   const half=Math.ceil(classified.length/2);
@@ -279,12 +301,11 @@ function renderNews(allNews){
   [["newsCol1",classified.slice(0,half)],["newsCol2",classified.slice(half)]].forEach(([id,items])=>{
     document.getElementById(id).innerHTML=items.map(n=>{
       const cls=n.sentiment==="bullish"?"news-bullish":n.sentiment==="bearish"?"news-bearish":"news-neutral";
-      const src=(n.source||'').replace(/<[^>]*>/g,'');
       return `<a href="${n.link||'#'}" target="_blank" rel="noopener" class="news-item ${cls}">
         <div class="news-head">${(n.title||'').replace(/<[^>]*>/g,'')}</div>
-        <div class="news-meta"><span class="news-src">${src}</span><span class="news-time">${n.pubDate?timeAgo(n.pubDate):''}</span></div>
+        <div class="news-meta"><span class="news-src">${(n.source||'').replace(/<[^>]*>/g,'')}</span><span class="news-time">${n.pubDate?timeAgo(n.pubDate):''}</span></div>
       </a>`;
-    }).join('')||'<div class="loader">Loading news...</div>';
+    }).join('')||'';
   });
 }
 
@@ -304,10 +325,15 @@ function renderPeers(peers,sp500,vix,usdnok){
 }
 
 // ── Main ──
+let loadCount=0;
 async function loadAll(){
+  loadCount++;
+  const isFirst=loadCount===1;
   document.getElementById("statusText").textContent="Fetching...";
-  renderThesis();renderRates();
+  renderThesis();
+  if(isFirst) renderRates(); // only render rates on first load (they're user-edited)
 
+  // Prices
   try{
     const [froOl,froUs,brent,dht,insw,stng,usdnok,sp500,vix]=await Promise.all([
       fetchYahoo("FRO.OL"),fetchYahoo("FRO"),fetchYahoo("BZ=F"),
@@ -322,16 +348,24 @@ async function loadAll(){
     renderPeerPerfChart(froOlH,parseHistory(dht),parseHistory(insw),parseHistory(stng));
     renderPeers([{ticker:"DHT",data:parsePrice(dht)},{ticker:"INSW",data:parsePrice(insw)},{ticker:"STNG",data:parsePrice(stng)}],parsePrice(sp500),parsePrice(vix),parsePrice(usdnok));
     document.getElementById("statusText").textContent="Live · "+new Date().toLocaleString("fi-FI",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  }catch(e){document.getElementById("statusText").textContent="Price error: "+e.message;}
+  }catch(e){
+    console.error("Price error:",e);
+    document.getElementById("statusText").textContent="Price error — see console";
+  }
 
+  // News — 3 parallel searches
   try{
     const [n1,n2,n3]=await Promise.all([
-      fetchNews("Iran war Hormuz shipping tanker"),
-      fetchNews("Frontline FRO VLCC oil tanker rates"),
-      fetchNews("Iran ceasefire oil price crude"),
+      fetchNews("Iran war Hormuz shipping tanker 2026"),
+      fetchNews("Frontline FRO VLCC oil tanker freight rates"),
+      fetchNews("Iran ceasefire oil price crude Middle East"),
     ]);
     renderNews([...n1,...n2,...n3]);
-  }catch(e){document.getElementById("newsCol1").innerHTML='<div class="loader">News error: '+e.message+'</div>';}
+  }catch(e){
+    console.error("News error:",e);
+    document.getElementById("newsCol1").innerHTML=`<div class="news-error">News failed: ${e.message}<br><br>Check F12 → Console for details. The news-proxy function may not be deployed yet.</div>`;
+    document.getElementById("newsCol2").innerHTML='';
+  }
 }
 
 loadAll();
