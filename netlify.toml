@@ -16,3 +16,8 @@
   from = "/api/data-proxy"
   to = "/.netlify/functions/data-proxy"
   status = 200
+
+[[redirects]]
+  from = "/api/news-proxy"
+  to = "/.netlify/functions/news-proxy"
+  status = 200
