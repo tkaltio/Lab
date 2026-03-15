@@ -78,7 +78,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 const APPS = [
   { slug: "fro-dashboard", name: "Investments", icon: "🚢", status: "live", file: "investments.html" },
   { slug: "trading", name: "Daily Trade Advisor", icon: "📊", status: "live", file: "trading-dashboard.html" },
-  { slug: "calendar", name: "Family Calendar", icon: "📅", status: "soon", file: null },
+  { slug: "calendar", name: "Family Calendar", icon: "📅", status: "live", file: null, externalUrl: "https://perhekalenteri.netlify.app" },
   { slug: "invitly", name: "Invitly", icon: "💌", status: "soon", file: null },
 ];
 function getSession(){try{const raw=localStorage.getItem("lab_session");if(!raw)return null;const s=JSON.parse(atob(raw));if(Date.now()-s.ts>7*24*60*60*1000){localStorage.removeItem("lab_session");return null;}return s;}catch{return null;}}
@@ -105,7 +105,7 @@ let pendingSlug=null;
 function openApp(slug){if(canAccess(slug)){navigateToApp(slug);return;}pendingSlug=slug;const app=APPS.find(a=>a.slug===slug);document.getElementById("modalTitle").textContent=app?app.name:"Enter password";document.getElementById("modalDesc").textContent="Enter the access code to continue.";document.getElementById("modalError").style.display="none";document.getElementById("modalPassword").value="";document.getElementById("modalOverlay").classList.add("active");setTimeout(()=>document.getElementById("modalPassword").focus(),100);}
 function closeModal(){document.getElementById("modalOverlay").classList.remove("active");pendingSlug=null;}
 async function submitPassword(){const pw=document.getElementById("modalPassword").value.trim();if(!pw)return;const btn=document.getElementById("modalBtn");btn.disabled=true;btn.textContent="Checking...";document.getElementById("modalError").style.display="none";try{const res=await fetch("/api/verify-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({app_slug:pendingSlug,password:pw})});const data=await res.json();if(data.ok){setSession(data.token);closeModal();renderApps();setTimeout(()=>navigateToApp(pendingSlug),200);}else{document.getElementById("modalError").style.display="block";document.getElementById("modalError").textContent=data.error||"Wrong password";document.getElementById("modalPassword").value="";document.getElementById("modalPassword").focus();}}catch(e){document.getElementById("modalError").style.display="block";document.getElementById("modalError").textContent="Connection error: "+e.message;}btn.disabled=false;btn.textContent="Enter";}
-function navigateToApp(slug){const app=APPS.find(a=>a.slug===slug);if(app&&app.file)window.location.href="/apps/"+app.file;}
+function navigateToApp(slug){const app=APPS.find(a=>a.slug===slug);if(app&&app.externalUrl)window.open(app.externalUrl,'_blank');else if(app&&app.file)window.location.href="/apps/"+app.file;}
 renderApps();
 </script>
 </body>
